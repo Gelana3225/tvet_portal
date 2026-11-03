@@ -1,4 +1,8 @@
+import { useNavigate } from 'react-router-dom'
+
 function HomePage() {
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
@@ -13,10 +17,16 @@ function HomePage() {
             Welcome to the student registration portal
           </p>
           <div className="flex gap-4 justify-center">
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <button 
+              onClick={() => navigate('/register')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
               Apply Now
             </button>
-            <button className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+            <button 
+              onClick={() => navigate('/login')}
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            >
               Login
             </button>
           </div>
