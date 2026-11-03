@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+
+class AuthController extends Controller
+{
+    /**
+     * Register a new applicant account
+     */
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        // Get the applicant role
+        $applicantRole = Role::where('name', 'applicant')->first();
+
+        if (!$applicantRole) {
+            return response()->json([
+                'message' => 'System configuration error. Please contact administrator.'
+            ], 500);
+        }
+
+        // Create the user account
+        $user = User::create([
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role_id' => $applicantRole->id,
+            'is_active' => true,
+        ]);
+
+        // Log the user in
+        Auth::login($user);
+
+        return response()->json([
+            'message' => 'Registration successful.',
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role->name,
+                'is_active' => $user->is_active,
+            ]
+        ], 201);
+    }
+
+    /**
+     * Login with email and password
+     */
+    public function login(LoginRequest $request): JsonResponse
+    {
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Verify credentials
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        // Check if user is active
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => 'Your account has been deactivated. Please contact administrator.'
+            ], 403);
+        }
+
+        // Log the user in
+        Auth::login($user);
+
+        // Update last login timestamp
+        $user->update(['last_login_at' => now()]);
+
+        return response()->json([
+            'message' => 'Login successful.',
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role->name,
+                'is_active' => $user->is_active,
+                'last_login_at' => $user->last_login_at,
+            ]
+        ], 200);
+    }
+
+    /**
+     * Logout the authenticated user
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'message' => 'Logout successful.'
+        ], 200);
+    }
+
+    /**
+     * Get the authenticated user's information
+     */
+    public function user(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role->name,
+                'is_active' => $user->is_active,
+                'last_login_at' => $user->last_login_at,
+            ]
+        ], 200);
+    }
+}
