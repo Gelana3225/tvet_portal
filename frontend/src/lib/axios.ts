@@ -55,11 +55,14 @@ api.interceptors.response.use(
 // Get CSRF cookie before making requests
 export const getCsrfToken = async () => {
   try {
+    console.log('Getting CSRF token from:', 'http://localhost:8000/sanctum/csrf-cookie');
     await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
       withCredentials: true,
     });
+    console.log('CSRF token obtained successfully');
   } catch (error) {
     console.error('Failed to get CSRF token:', error);
+    throw error;
   }
 };
 

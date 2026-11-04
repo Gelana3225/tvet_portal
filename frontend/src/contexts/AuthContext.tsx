@@ -51,16 +51,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, passwordConfirmation: string) => {
     try {
+      console.log('Starting registration process...');
+      console.log('Email:', email);
+      
       await getCsrfToken();
+      console.log('CSRF token obtained, sending registration request...');
+      
       const response = await api.post('/auth/register', {
         email,
         password,
         password_confirmation: passwordConfirmation,
       });
+      
+      console.log('Registration response:', response.data);
       setUser(response.data.user);
     } catch (error: any) {
       console.error('Registration error:', error);
-      console.error('Response data:', error.response?.data);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      console.error('Error config:', error.config);
       throw error;
     }
   };

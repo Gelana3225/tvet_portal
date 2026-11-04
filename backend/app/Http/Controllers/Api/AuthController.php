@@ -20,10 +20,17 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
+        \Log::info('Registration attempt', [
+            'email' => $request->email,
+            'has_password' => !empty($request->password),
+            'has_confirmation' => !empty($request->password_confirmation),
+        ]);
+
         // Get the applicant role
         $applicantRole = Role::where('name', 'applicant')->first();
 
         if (!$applicantRole) {
+            \Log::error('Applicant role not found');
             return response()->json([
                 'message' => 'System configuration error. Please contact administrator.'
             ], 500);
@@ -36,6 +43,8 @@ class AuthController extends Controller
             'role_id' => $applicantRole->id,
             'is_active' => true,
         ]);
+
+        \Log::info('User created successfully', ['user_id' => $user->id]);
 
         // Log the user in
         Auth::login($user);
