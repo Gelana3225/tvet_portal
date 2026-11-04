@@ -23,6 +23,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log('AuthContext state - user:', user, 'loading:', loading);
+
   const checkAuth = async () => {
     try {
       console.log('Checking authentication...');
@@ -83,26 +85,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      console.log('Starting login process...');
-      console.log('Email:', email);
-      
-      await getCsrfToken();
-      console.log('CSRF token obtained, sending login request...');
-      
-      const response = await api.post('/auth/login', {
-        email,
-        password,
-      });
-      
-      console.log('Login response:', response.data);
-      setUser(response.data.user);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
-      throw error;
-    }
+    console.log('Starting login process...');
+    console.log('Email:', email);
+    
+    await getCsrfToken();
+    console.log('CSRF token obtained, sending login request...');
+    
+    const response = await api.post('/auth/login', {
+      email,
+      password,
+    });
+    
+    console.log('Login response:', response.data);
+    console.log('Setting user state to:', response.data.user);
+    setUser(response.data.user);
+    setLoading(false);
+    console.log('User state set, returning user data');
+    
+    return response.data.user;
   };
 
   const logout = async () => {

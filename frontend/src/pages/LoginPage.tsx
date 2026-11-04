@@ -19,9 +19,17 @@ const LoginPage: React.FC = () => {
     console.log('Email:', email);
 
     try {
-      await login(email, password);
-      console.log('Login successful, navigating to dashboard');
-      navigate('/dashboard');
+      const userData = await login(email, password);
+      console.log('Login successful, user data received:', userData);
+      
+      if (userData) {
+        console.log('User data confirmed, navigating to dashboard');
+        window.location.href = '/dashboard';
+      } else {
+        console.error('No user data returned');
+        setError('Login failed - no user data received');
+        setLoading(false);
+      }
     } catch (err: any) {
       console.error('Login failed:', err);
       const errorMessage = err.response?.data?.message 
@@ -29,7 +37,6 @@ const LoginPage: React.FC = () => {
         || err.message 
         || 'Login failed. Please check your credentials.';
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-    } finally {
       setLoading(false);
     }
   };

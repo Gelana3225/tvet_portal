@@ -18,9 +18,12 @@ const RegisterPage: React.FC = () => {
 
     try {
       console.log('Attempting registration...');
-      await register(email, password, passwordConfirmation);
-      console.log('Registration successful!');
-      navigate('/dashboard');
+      const userData = await register(email, password, passwordConfirmation);
+      console.log('Registration successful!', userData);
+      
+      if (userData) {
+        window.location.href = '/dashboard';
+      }
     } catch (err: any) {
       console.error('Registration failed:', err);
       const errorMessage = err.response?.data?.message 
@@ -28,7 +31,6 @@ const RegisterPage: React.FC = () => {
         || err.message 
         || 'Registration failed. Please try again.';
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-    } finally {
       setLoading(false);
     }
   };
