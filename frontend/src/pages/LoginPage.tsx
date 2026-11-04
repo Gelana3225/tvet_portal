@@ -15,11 +15,20 @@ const LoginPage: React.FC = () => {
     setError('');
     setLoading(true);
 
+    console.log('Login form submitted');
+    console.log('Email:', email);
+
     try {
       await login(email, password);
+      console.log('Login successful, navigating to dashboard');
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      console.error('Login failed:', err);
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data?.errors 
+        || err.message 
+        || 'Login failed. Please check your credentials.';
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setLoading(false);
     }
@@ -53,6 +62,7 @@ const LoginPage: React.FC = () => {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -69,6 +79,7 @@ const LoginPage: React.FC = () => {
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -25,10 +25,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
+      console.log('Checking authentication...');
       const response = await api.get('/auth/user');
+      console.log('Auth check successful:', response.data);
       setUser(response.data.user);
-    } catch (error) {
+    } catch (error: any) {
       // Silently fail - user is not authenticated
+      console.log('Auth check failed (user not logged in)');
       setUser(null);
     } finally {
       setLoading(false);
@@ -41,9 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       || window.location.pathname === '/register' 
       || window.location.pathname === '/';
     
+    console.log('Auth context initialized, current path:', window.location.pathname);
+    console.log('Is public route:', isPublicRoute);
+    
     if (isPublicRoute) {
       // Skip auth check on public routes
+      console.log('Skipping auth check for public route');
       setLoading(false);
+      setUser(null);
     } else {
       checkAuth();
     }
@@ -75,12 +83,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    await getCsrfToken();
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-    });
-    setUser(response.data.user);
+    try {
+      console.log('Starting login process...');
+      console.log('Email:', email);
+      
+      await getCsrfToken();
+      console.log('CSRF token obtained, sending login request...');
+      
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+      });
+      
+      console.log('Login response:', response.data);
+      setUser(response.data.user);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      throw error;
+    }
   };
 
   const logout = async () => {
