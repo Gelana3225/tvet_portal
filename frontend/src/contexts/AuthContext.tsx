@@ -75,6 +75,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Registration response:', response.data);
       setUser(response.data.user);
+      setLoading(false);
+      
+      return response.data.user;
     } catch (error: any) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response);
@@ -85,24 +88,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    console.log('Starting login process...');
-    console.log('Email:', email);
-    
-    await getCsrfToken();
-    console.log('CSRF token obtained, sending login request...');
-    
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-    });
-    
-    console.log('Login response:', response.data);
-    console.log('Setting user state to:', response.data.user);
-    setUser(response.data.user);
-    setLoading(false);
-    console.log('User state set, returning user data');
-    
-    return response.data.user;
+    try {
+      console.log('Starting login process...');
+      console.log('Email:', email);
+      
+      await getCsrfToken();
+      console.log('CSRF token obtained, sending login request...');
+      
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+      });
+      
+      console.log('Login response:', response.data);
+      console.log('Setting user state to:', response.data.user);
+      setUser(response.data.user);
+      setLoading(false);
+      console.log('User state set, returning user data');
+      
+      return response.data.user;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      throw error;
+    }
   };
 
   const logout = async () => {
