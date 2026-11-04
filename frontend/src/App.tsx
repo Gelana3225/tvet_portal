@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
 import './index.css';
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route
-            path="/dashboard/*"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardPage />
@@ -24,7 +25,7 @@ function App() {
             }
           >
             <Route index element={<div className="p-6"><h2 className="text-2xl font-bold">Dashboard Home</h2><p className="mt-2 text-gray-600">Welcome to your student portal!</p></div>} />
-            <Route path="profile" element={<div className="p-6"><h2 className="text-2xl font-bold">Profile</h2><p className="mt-2 text-gray-600">Manage your profile here</p></div>} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="applications" element={<div className="p-6"><h2 className="text-2xl font-bold">Applications</h2><p className="mt-2 text-gray-600">View your applications here</p></div>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
