@@ -46,13 +46,8 @@ export const referenceApi = {
   },
 
   getQualificationLevels: async () => {
-    // Mock data for now since endpoint doesn't exist yet
-    return {
-      qualification_levels: [
-        { id: 1, name: 'Grade 10', code: 'GR10' },
-        { id: 2, name: 'Grade 12', code: 'GR12' },
-      ]
-    };
+    const response = await api.get('/reference/qualification-levels');
+    return response.data;
   },
 
   getAdmissionPeriods: async () => {
@@ -107,6 +102,57 @@ export const applicationApi = {
 
   deleteDocument: async (applicationId: number, documentId: number) => {
     const response = await api.delete(`/applications/${applicationId}/documents/${documentId}`);
+    return response.data;
+  },
+};
+
+// Admin & Registrar API
+export const adminApi = {
+  getStats: async () => {
+    const response = await api.get('/admin/stats');
+    return response.data;
+  },
+
+  getApplications: async (params?: { status?: string; department_id?: number; search?: string }) => {
+    const response = await api.get('/admin/applications', { params });
+    return response.data;
+  },
+
+  getApplication: async (id: number) => {
+    const response = await api.get(`/admin/applications/${id}`);
+    return response.data;
+  },
+
+  updateApplicationStatus: async (
+    id: number,
+    payload: {
+      status: 'under_review' | 'approved' | 'rejected' | 'correction_required';
+      notes?: string;
+      rejection_reason?: string;
+      correction_notes?: string;
+    }
+  ) => {
+    const response = await api.post(`/admin/applications/${id}/status`, payload);
+    return response.data;
+  },
+
+  getStudents: async () => {
+    const response = await api.get('/admin/students');
+    return response.data;
+  },
+
+  getAdmissionPeriods: async () => {
+    const response = await api.get('/admin/admission-periods');
+    return response.data;
+  },
+
+  createAdmissionPeriod: async (data: any) => {
+    const response = await api.post('/admin/admission-periods', data);
+    return response.data;
+  },
+
+  updateAdmissionPeriod: async (id: number, data: any) => {
+    const response = await api.put(`/admin/admission-periods/${id}`, data);
     return response.data;
   },
 };

@@ -49,12 +49,16 @@ class AuthController extends Controller
         // Log the user in
         Auth::login($user);
 
+        // Generate Sanctum API token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Registration successful.',
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
-                'role' => $user->role->name,
+                'role' => $user->role ? $user->role->name : 'applicant',
                 'is_active' => $user->is_active,
             ]
         ], 201);
@@ -88,12 +92,16 @@ class AuthController extends Controller
         // Update last login timestamp
         $user->update(['last_login_at' => now()]);
 
+        // Generate Sanctum API token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Login successful.',
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
-                'role' => $user->role->name,
+                'role' => $user->role ? $user->role->name : 'applicant',
                 'is_active' => $user->is_active,
                 'last_login_at' => $user->last_login_at,
             ]
@@ -105,10 +113,16 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        if ($request->user() && method_exists($request->user(), 'currentAccessToken') && $request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'message' => 'Logout successful.'
@@ -132,7 +146,7 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
-                'role' => $user->role->name,
+                'role' => $user->role ? $user->role->name : 'applicant',
                 'is_active' => $user->is_active,
                 'last_login_at' => $user->last_login_at,
             ]

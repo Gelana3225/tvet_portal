@@ -11,6 +11,7 @@ class ApplicationDocument extends Model
         'application_id',
         'document_type',
         'original_filename',
+        'file_name',
         'stored_filename',
         'file_path',
         'file_size',
@@ -20,12 +21,33 @@ class ApplicationDocument extends Model
         'verified_by',
         'verified_at',
         'notes',
+        'description',
     ];
 
     protected $casts = [
         'is_verified' => 'boolean',
         'verified_at' => 'datetime',
     ];
+
+    public function getFileNameAttribute()
+    {
+        return $this->attributes['original_filename'] ?? null;
+    }
+
+    public function setFileNameAttribute($value)
+    {
+        $this->attributes['original_filename'] = $value;
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->attributes['notes'] ?? null;
+    }
+
+    public function setDescriptionAttribute($value)
+    {
+        $this->attributes['notes'] = $value;
+    }
 
     public function application(): BelongsTo
     {

@@ -69,16 +69,23 @@ class AdmissionPeriodController extends Controller
      */
     private function formatPeriodResponse(AdmissionPeriod $period): array
     {
+        $isOpen = $period->isOpen();
+        $daysRemaining = null;
+        if ($isOpen && $period->closing_date) {
+            $diff = (int) ceil(now()->diffInDays($period->closing_date, false));
+            $daysRemaining = $diff >= 0 ? $diff : 0;
+        }
+
         return [
             'id' => $period->id,
             'name' => $period->name,
             'academic_year' => $period->academic_year,
-            'opening_date' => $period->opening_date,
-            'closing_date' => $period->closing_date,
+            'opening_date' => $period->opening_date ? $period->opening_date->format('Y-m-d') : null,
+            'closing_date' => $period->closing_date ? $period->closing_date->format('Y-m-d') : null,
             'status' => $period->status,
             'description' => $period->description,
-            'is_active' => $period->isActive(),
-            'days_remaining' => $period->isActive() ? now()->diffInDays($period->closing_date) : null,
+            'is_active' => $isOpen,
+            'days_remaining' => $daysRemaining,
         ];
     }
 }

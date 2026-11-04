@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api, { getCsrfToken } from '../lib/axios';
 
-interface User {
+export interface User {
   id: number;
   email: string;
   role: string;
@@ -11,8 +11,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, passwordConfirmation: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (email: string, password: string, passwordConfirmation: string) => Promise<User>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -32,8 +32,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth check successful:', response.data);
       setUser(response.data.user);
     } catch (error: any) {
-      // Silently fail - user is not authenticated
       console.log('Auth check failed (user not logged in)');
+      localStorage.removeItem('auth_token');
       setUser(null);
     } finally {
       setLoading(false);
@@ -41,17 +41,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Only check auth on protected routes
-    const isPublicRoute = window.location.pathname === '/login' 
-      || window.location.pathname === '/register' 
-      || window.location.pathname === '/';
-    
-    console.log('Auth context initialized, current path:', window.location.pathname);
-    console.log('Is public route:', isPublicRoute);
-    
-    if (isPublicRoute) {
-      // Skip auth check on public routes
-      console.log('Skipping auth check for public route');
+    const hasToken = !!localStorage.getItem('auth_token');
+    const isPublicRoute =
+      window.location.pathname === '/login' ||
+      window.location.pathname === '/register' ||
+      window.location.pathname === '/';
+
+    if (isPublicRoute && !hasToken) {
       setLoading(false);
       setUser(null);
     } else {
@@ -74,15 +70,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       console.log('Registration response:', response.data);
-      setUser(response.data.user);
+      if (response.data.token) {
+        localStorage.setItem('auth_token', response.data.token);
+      }
+
+      const currentUser = response.data?.user || response.data;
+      setUser(currentUser);
       setLoading(false);
       
-      return response.data.user;
+      return currentUser;
     } catch (error: any) {
       console.error('Registration error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
-      console.error('Error config:', error.config);
       throw error;
     }
   };
@@ -101,23 +99,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       console.log('Login response:', response.data);
-      console.log('Setting user state to:', response.data.user);
-      setUser(response.data.user);
+      if (response.data.token) {
+        localStorage.setItem('auth_token', response.data.token);
+      }
+
+      const currentUser = response.data?.user || response.data;
+      console.log('Setting user state to:', currentUser);
+      setUser(currentUser);
       setLoading(false);
       console.log('User state set, returning user data');
       
-      return response.data.user;
+      return currentUser;
     } catch (error: any) {
       console.error('Login error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
       throw error;
     }
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
-    setUser(null);
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.warn('Logout API call failed:', err);
+    } finally {
+      localStorage.removeItem('auth_token');
+      setUser(null);
+    }
   };
 
   return (

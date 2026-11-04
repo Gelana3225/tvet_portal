@@ -91,20 +91,25 @@ class ApplicationController extends Controller
                 'department_id' => $request->department_id,
                 'occupation_id' => $request->occupation_id,
                 'qualification_level_id' => $request->qualification_level_id,
+                'previous_school' => $request->previous_school_name,
                 'previous_school_name' => $request->previous_school_name,
                 'previous_school_address' => $request->previous_school_address,
                 'grade_10_result' => $request->grade_10_result,
                 'grade_12_result' => $request->grade_12_result,
                 'has_disability' => $request->has_disability,
                 'disability_description' => $request->disability_description,
+                'current_status' => 'draft',
                 'status' => 'draft',
             ]);
 
             // Create initial status history
             ApplicationStatusHistory::create([
                 'application_id' => $application->id,
+                'previous_status' => null,
+                'new_status' => 'draft',
                 'status' => 'draft',
                 'changed_by' => $user->id,
+                'notes' => 'Application created',
                 'remarks' => 'Application created',
             ]);
 
@@ -147,7 +152,12 @@ class ApplicationController extends Controller
             ], 403);
         }
 
-        $application->update($request->validated());
+        $data = $request->validated();
+        if (isset($data['previous_school_name'])) {
+            $data['previous_school'] = $data['previous_school_name'];
+        }
+
+        $application->update($data);
 
         return response()->json([
             'message' => 'Application updated successfully.',
@@ -186,17 +196,21 @@ class ApplicationController extends Controller
 
         // Handle file upload
         $file = $request->file('file');
-        $filename = 'app_' . $application->id . '_' . $request->document_type . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('application_documents', $filename, 'public');
+        $storedFilename = 'app_' . $application->id . '_' . $request->document_type . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('application_documents', $storedFilename, 'public');
 
         // Create document record
         $document = ApplicationDocument::create([
             'application_id' => $application->id,
             'document_type' => $request->document_type,
             'file_path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
             'file_name' => $file->getClientOriginalName(),
+            'stored_filename' => $storedFilename,
             'file_size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
+            'uploaded_by' => $user->id,
+            'notes' => $request->description,
             'description' => $request->description,
             'is_verified' => false,
         ]);
@@ -206,7 +220,7 @@ class ApplicationController extends Controller
             'document' => [
                 'id' => $document->id,
                 'document_type' => $document->document_type,
-                'file_name' => $document->file_name,
+                'file_name' => $document->original_filename,
                 'file_url' => Storage::url($document->file_path),
                 'file_size' => $document->file_size,
                 'uploaded_at' => $document->created_at,
@@ -299,6 +313,7 @@ class ApplicationController extends Controller
         try {
             // Update status
             $application->update([
+                'current_status' => 'submitted',
                 'status' => 'submitted',
                 'submitted_at' => now(),
             ]);
@@ -306,8 +321,11 @@ class ApplicationController extends Controller
             // Create status history
             ApplicationStatusHistory::create([
                 'application_id' => $application->id,
+                'previous_status' => 'draft',
+                'new_status' => 'submitted',
                 'status' => 'submitted',
                 'changed_by' => $user->id,
+                'notes' => 'Application submitted by applicant',
                 'remarks' => 'Application submitted by applicant',
             ]);
 
@@ -336,25 +354,25 @@ class ApplicationController extends Controller
             'id' => $application->id,
             'application_number' => $application->application_number,
             'status' => $application->status,
-            'admission_period' => [
+            'admission_period' => $application->admissionPeriod ? [
                 'id' => $application->admissionPeriod->id,
                 'name' => $application->admissionPeriod->name,
                 'academic_year' => $application->admissionPeriod->academic_year,
-            ],
-            'department' => [
+            ] : null,
+            'department' => $application->department ? [
                 'id' => $application->department->id,
                 'name' => $application->department->name,
                 'code' => $application->department->code,
-            ],
-            'occupation' => [
+            ] : null,
+            'occupation' => $application->occupation ? [
                 'id' => $application->occupation->id,
                 'name' => $application->occupation->name,
                 'code' => $application->occupation->code,
-            ],
-            'qualification_level' => [
+            ] : null,
+            'qualification_level' => $application->qualificationLevel ? [
                 'id' => $application->qualificationLevel->id,
                 'name' => $application->qualificationLevel->name,
-            ],
+            ] : null,
             'previous_school_name' => $application->previous_school_name,
             'previous_school_address' => $application->previous_school_address,
             'grade_10_result' => $application->grade_10_result,
@@ -365,7 +383,7 @@ class ApplicationController extends Controller
                 return [
                     'id' => $doc->id,
                     'document_type' => $doc->document_type,
-                    'file_name' => $doc->file_name,
+                    'file_name' => $doc->original_filename,
                     'file_url' => Storage::url($doc->file_path),
                     'file_size' => $doc->file_size,
                     'is_verified' => $doc->is_verified,

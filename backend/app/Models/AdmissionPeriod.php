@@ -38,7 +38,30 @@ class AdmissionPeriod extends Model
      */
     public function isOpen(): bool
     {
-        return $this->status === 'open' 
-            && now()->between($this->opening_date, $this->closing_date);
+        if ($this->status !== 'open') {
+            return false;
+        }
+
+        $today = now()->startOfDay();
+        $opening = $this->opening_date ? $this->opening_date->copy()->startOfDay() : null;
+        $closing = $this->closing_date ? $this->closing_date->copy()->endOfDay() : null;
+
+        if ($opening && $today->lt($opening)) {
+            return false;
+        }
+
+        if ($closing && $today->gt($closing)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Alias for isOpen to prevent undefined method errors
+     */
+    public function isActive(): bool
+    {
+        return $this->isOpen();
     }
 }

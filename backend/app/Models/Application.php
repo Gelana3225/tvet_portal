@@ -17,10 +17,17 @@ class Application extends Model
         'occupation_id',
         'qualification_level_id',
         'previous_school',
+        'previous_school_name',
+        'previous_school_address',
+        'grade_10_result',
+        'grade_12_result',
+        'has_disability',
+        'disability_description',
         'highest_education_level',
         'completion_year',
         'certificate_info',
         'current_status',
+        'status',
         'declaration_accepted',
         'submitted_at',
         'reviewed_by',
@@ -32,9 +39,55 @@ class Application extends Model
 
     protected $casts = [
         'declaration_accepted' => 'boolean',
+        'has_disability' => 'boolean',
+        'grade_10_result' => 'float',
+        'grade_12_result' => 'float',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($application) {
+            if (empty($application->application_number)) {
+                $year = date('Y');
+                $maxId = static::max('id') ?? 0;
+                $application->application_number = sprintf('HTC-%s-%05d', $year, $maxId + 1);
+            }
+            if (empty($application->current_status)) {
+                $application->current_status = $application->status ?? 'draft';
+            }
+            if (empty($application->previous_school)) {
+                $application->previous_school = $application->previous_school_name ?? 'Not Specified';
+            }
+            if (empty($application->highest_education_level)) {
+                $application->highest_education_level = !empty($application->grade_12_result) ? 'Grade 12' : 'Grade 10';
+            }
+            if (empty($application->completion_year)) {
+                $application->completion_year = (int) date('Y');
+            }
+        });
+    }
+
+    public function getStatusAttribute()
+    {
+        return $this->current_status;
+    }
+
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['current_status'] = $value;
+    }
+
+    public function getPreviousSchoolNameAttribute()
+    {
+        return $this->attributes['previous_school'] ?? null;
+    }
+
+    public function setPreviousSchoolNameAttribute($value)
+    {
+        $this->attributes['previous_school'] = $value;
+    }
 
     public function user(): BelongsTo
     {

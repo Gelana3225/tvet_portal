@@ -49,9 +49,13 @@ class ApplicantProfileController extends Controller
         $data = $request->validated();
         $data['user_id'] = $user->id;
 
+        if (isset($data['phone'])) {
+            $data['phone_number'] = $data['phone'];
+        }
+
         // Handle photo upload
         if ($request->hasFile('photo')) {
-            $data['photo_path'] = $this->handlePhotoUpload($request->file('photo'), $user->id);
+            $data['profile_photo_path'] = $this->handlePhotoUpload($request->file('photo'), $user->id);
         }
 
         $profile = ApplicantProfile::create($data);
@@ -78,13 +82,17 @@ class ApplicantProfileController extends Controller
 
         $data = $request->validated();
 
+        if (isset($data['phone'])) {
+            $data['phone_number'] = $data['phone'];
+        }
+
         // Handle photo upload
         if ($request->hasFile('photo')) {
             // Delete old photo if exists
-            if ($profile->photo_path) {
-                Storage::disk('public')->delete($profile->photo_path);
+            if ($profile->profile_photo_path) {
+                Storage::disk('public')->delete($profile->profile_photo_path);
             }
-            $data['photo_path'] = $this->handlePhotoUpload($request->file('photo'), $user->id);
+            $data['profile_photo_path'] = $this->handlePhotoUpload($request->file('photo'), $user->id);
         }
 
         $profile->update($data);
@@ -103,17 +111,17 @@ class ApplicantProfileController extends Controller
         $user = $request->user();
         $profile = $user->applicantProfile;
 
-        if (!$profile || !$profile->photo_path) {
+        if (!$profile || !$profile->profile_photo_path) {
             return response()->json([
                 'message' => 'No photo to delete.'
             ], 404);
         }
 
         // Delete the photo file
-        Storage::disk('public')->delete($profile->photo_path);
+        Storage::disk('public')->delete($profile->profile_photo_path);
 
         // Update profile
-        $profile->update(['photo_path' => null]);
+        $profile->update(['profile_photo_path' => null]);
 
         return response()->json([
             'message' => 'Photo deleted successfully.'
@@ -142,17 +150,17 @@ class ApplicantProfileController extends Controller
             'grandfather_name' => $profile->grandfather_name,
             'full_name' => $profile->first_name . ' ' . $profile->father_name . ' ' . $profile->grandfather_name,
             'gender' => $profile->gender,
-            'date_of_birth' => $profile->date_of_birth,
+            'date_of_birth' => $profile->date_of_birth ? $profile->date_of_birth->format('Y-m-d') : null,
             'nationality' => $profile->nationality,
-            'photo_url' => $profile->photo_path ? Storage::url($profile->photo_path) : null,
-            'phone' => $profile->phone,
-            'email' => $profile->email,
+            'photo_url' => $profile->profile_photo_path ? Storage::url($profile->profile_photo_path) : null,
+            'phone' => $profile->phone_number,
+            'email' => $profile->email ?: ($profile->user ? $profile->user->email : ''),
             'address' => [
                 'region' => $profile->region,
                 'zone' => $profile->zone,
                 'woreda' => $profile->woreda,
                 'kebele' => $profile->kebele,
-                'house_number' => $profile->house_number,
+                'house_number' => $profile->house_number ?? '',
             ],
             'emergency_contact' => [
                 'name' => $profile->emergency_contact_name,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -7,8 +7,17 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
+
+  React.useEffect(() => {
+    if (user) {
+      if (user.role === 'admin' || user.role === 'registrar') {
+        window.location.href = '/admin/dashboard';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,21 +31,29 @@ const LoginPage: React.FC = () => {
       const userData = await login(email, password);
       console.log('Login successful, user data received:', userData);
       
-      if (userData) {
-        console.log('User data confirmed, navigating to dashboard');
-        window.location.href = '/dashboard';
+      const userObj = (userData as any)?.user || userData;
+      const role = userObj?.role;
+
+      if (role === 'admin' || role === 'registrar' || email.toLowerCase().includes('admin')) {
+        window.location.href = '/admin/dashboard';
       } else {
-        console.error('No user data returned');
-        setError('Login failed - no user data received');
-        setLoading(false);
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       console.error('Login failed:', err);
-      const errorMessage = err.response?.data?.message 
-        || err.response?.data?.errors 
-        || err.message 
-        || 'Login failed. Please check your credentials.';
-      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+      let errorMessage = 'Login failed. Please check your credentials.';
+      if (err.response?.data?.errors) {
+        const errorList = Object.values(err.response.data.errors).flat();
+        errorMessage = errorList.join(' ');
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status === 422) {
+        errorMessage = 'Invalid email or password.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };

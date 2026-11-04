@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendRoot = apiBase.replace(/\/api\/?$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: apiBase,
   withCredentials: true,
   headers: {
     'Accept': 'application/json',
@@ -9,17 +12,23 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for adding CSRF token
+// Request interceptor for adding Authorization and CSRF tokens
 api.interceptors.request.use(
   async (config) => {
-    // Get CSRF token from cookie
-    const token = document.cookie
+    // Attach Bearer token from localStorage if present
+    const authToken = localStorage.getItem('auth_token');
+    if (authToken) {
+      config.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    // Get CSRF token from cookie if present
+    const csrfToken = document.cookie
       .split('; ')
       .find(row => row.startsWith('XSRF-TOKEN='))
       ?.split('=')[1];
 
-    if (token) {
-      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
+    if (csrfToken) {
+      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfToken);
     }
 
     return config;
@@ -55,8 +64,9 @@ api.interceptors.response.use(
 // Get CSRF cookie before making requests
 export const getCsrfToken = async () => {
   try {
-    console.log('Getting CSRF token from:', 'http://localhost:8000/sanctum/csrf-cookie');
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+    const csrfUrl = `${backendRoot}/sanctum/csrf-cookie`;
+    console.log('Getting CSRF token from:', csrfUrl);
+    await axios.get(csrfUrl, {
       withCredentials: true,
     });
     console.log('CSRF token obtained successfully');

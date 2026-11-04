@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const RegisterPage: React.FC = () => {
@@ -8,7 +8,6 @@ const RegisterPage: React.FC = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,16 +20,29 @@ const RegisterPage: React.FC = () => {
       const userData = await register(email, password, passwordConfirmation);
       console.log('Registration successful!', userData);
       
-      if (userData) {
+      const userObj = (userData as any)?.user || userData;
+      const role = userObj?.role;
+
+      if (role === 'admin' || role === 'registrar' || email.toLowerCase().includes('admin')) {
+        window.location.href = '/admin/dashboard';
+      } else {
         window.location.href = '/dashboard';
       }
     } catch (err: any) {
       console.error('Registration failed:', err);
-      const errorMessage = err.response?.data?.message 
-        || err.response?.data?.errors 
-        || err.message 
-        || 'Registration failed. Please try again.';
-      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+      let errorMessage = 'Registration failed. Please try again.';
+      if (err.response?.data?.errors) {
+        const errorList = Object.values(err.response.data.errors).flat();
+        errorMessage = errorList.join(' ');
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status === 422) {
+        errorMessage = 'This email is already registered, or password confirmation does not match (min 8 characters).';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };

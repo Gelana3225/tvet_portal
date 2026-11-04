@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdmissionPeriodController;
 use App\Http\Controllers\Api\ApplicantProfileController;
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\OccupationController;
+use App\Http\Controllers\Api\QualificationLevelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +32,8 @@ Route::prefix('reference')->group(function () {
     Route::get('/departments/{id}', [DepartmentController::class, 'show']);
     Route::get('/occupations', [OccupationController::class, 'index']);
     Route::get('/occupations/{id}', [OccupationController::class, 'show']);
+    Route::get('/qualification-levels', [QualificationLevelController::class, 'index']);
+    Route::get('/qualification-levels/{id}', [QualificationLevelController::class, 'show']);
     Route::get('/admission-periods', [AdmissionPeriodController::class, 'index']);
     Route::get('/admission-periods/active', [AdmissionPeriodController::class, 'active']);
     Route::get('/admission-periods/{id}', [AdmissionPeriodController::class, 'show']);
@@ -60,5 +64,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{id}/submit', [ApplicationController::class, 'submit']);
         Route::post('/{id}/documents', [ApplicationController::class, 'uploadDocument']);
         Route::delete('/{applicationId}/documents/{documentId}', [ApplicationController::class, 'deleteDocument']);
+    });
+
+    // Admin & Registrar routes
+    Route::prefix('admin')->group(function () {
+        Route::get('/stats', [AdminController::class, 'stats']);
+        Route::get('/applications', [AdminController::class, 'applications']);
+        Route::get('/applications/{id}', [AdminController::class, 'applicationDetail']);
+        Route::post('/applications/{id}/status', [AdminController::class, 'updateApplicationStatus']);
+        Route::get('/students', [AdminController::class, 'students']);
+        Route::get('/admission-periods', [AdminController::class, 'admissionPeriods']);
+        Route::post('/admission-periods', [AdminController::class, 'storeAdmissionPeriod']);
+        Route::put('/admission-periods/{id}', [AdminController::class, 'updateAdmissionPeriod']);
     });
 });
