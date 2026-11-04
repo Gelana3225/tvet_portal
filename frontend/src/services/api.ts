@@ -46,8 +46,13 @@ export const referenceApi = {
   },
 
   getQualificationLevels: async () => {
-    const response = await api.get('/reference/qualification-levels');
-    return response.data;
+    // Mock data for now since endpoint doesn't exist yet
+    return {
+      qualification_levels: [
+        { id: 1, name: 'Grade 10', code: 'GR10' },
+        { id: 2, name: 'Grade 12', code: 'GR12' },
+      ]
+    };
   },
 
   getAdmissionPeriods: async () => {
