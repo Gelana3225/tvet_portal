@@ -6,6 +6,9 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import ApplicationsPage from './pages/ApplicationsPage';
+import NewApplicationPage from './pages/NewApplicationPage';
+import ApplicationDetailPage from './pages/ApplicationDetailPage';
 import './index.css';
 
 function App() {
@@ -26,7 +29,9 @@ function App() {
           >
             <Route index element={<div className="p-6"><h2 className="text-2xl font-bold">Dashboard Home</h2><p className="mt-2 text-gray-600">Welcome to your student portal!</p></div>} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="applications" element={<div className="p-6"><h2 className="text-2xl font-bold">Applications</h2><p className="mt-2 text-gray-600">View your applications here</p></div>} />
+            <Route path="applications" element={<ApplicationsPage />} />
+            <Route path="applications/new" element={<NewApplicationPage />} />
+            <Route path="applications/:id" element={<ApplicationDetailPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
