@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             QualificationLevelSeeder::class,
             DepartmentSeeder::class,
             OccupationSeeder::class,
+            AdmissionPeriodSeeder::class,
         ]);
     }
 }

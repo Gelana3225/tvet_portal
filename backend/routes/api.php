@@ -1,7 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdmissionPeriodController;
 use App\Http\Controllers\Api\ApplicantProfileController;
+use App\Http\Controllers\Api\ApplicationController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\OccupationController;
 use Illuminate\Http\Request;
@@ -28,6 +30,9 @@ Route::prefix('reference')->group(function () {
     Route::get('/departments/{id}', [DepartmentController::class, 'show']);
     Route::get('/occupations', [OccupationController::class, 'index']);
     Route::get('/occupations/{id}', [OccupationController::class, 'show']);
+    Route::get('/admission-periods', [AdmissionPeriodController::class, 'index']);
+    Route::get('/admission-periods/active', [AdmissionPeriodController::class, 'active']);
+    Route::get('/admission-periods/{id}', [AdmissionPeriodController::class, 'show']);
 });
 
 // Protected routes (require authentication)
@@ -44,5 +49,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [ApplicantProfileController::class, 'store']);
         Route::put('/', [ApplicantProfileController::class, 'update']);
         Route::delete('/photo', [ApplicantProfileController::class, 'deletePhoto']);
+    });
+    
+    // Application routes
+    Route::prefix('applications')->group(function () {
+        Route::get('/', [ApplicationController::class, 'index']);
+        Route::post('/', [ApplicationController::class, 'store']);
+        Route::get('/{id}', [ApplicationController::class, 'show']);
+        Route::put('/{id}', [ApplicationController::class, 'update']);
+        Route::post('/{id}/submit', [ApplicationController::class, 'submit']);
+        Route::post('/{id}/documents', [ApplicationController::class, 'uploadDocument']);
+        Route::delete('/{applicationId}/documents/{documentId}', [ApplicationController::class, 'deleteDocument']);
     });
 });
