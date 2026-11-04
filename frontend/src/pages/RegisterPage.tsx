@@ -17,10 +17,17 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting registration...');
       await register(email, password, passwordConfirmation);
+      console.log('Registration successful!');
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('Registration failed:', err);
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data?.errors 
+        || err.message 
+        || 'Registration failed. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setLoading(false);
     }

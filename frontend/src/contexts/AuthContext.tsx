@@ -28,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.get('/auth/user');
       setUser(response.data.user);
     } catch (error) {
+      // Silently fail - user is not authenticated
       setUser(null);
     } finally {
       setLoading(false);
@@ -35,17 +36,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    checkAuth();
+    // Only check auth on protected routes
+    const isPublicRoute = window.location.pathname === '/login' 
+      || window.location.pathname === '/register' 
+      || window.location.pathname === '/';
+    
+    if (isPublicRoute) {
+      // Skip auth check on public routes
+      setLoading(false);
+    } else {
+      checkAuth();
+    }
   }, []);
 
   const register = async (email: string, password: string, passwordConfirmation: string) => {
-    await getCsrfToken();
-    const response = await api.post('/auth/register', {
-      email,
-      password,
-      password_confirmation: passwordConfirmation,
-    });
-    setUser(response.data.user);
+    try {
+      await getCsrfToken();
+      const response = await api.post('/auth/register', {
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      });
+      setUser(response.data.user);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      console.error('Response data:', error.response?.data);
+      throw error;
+    }
   };
 
   const login = async (email: string, password: string) => {

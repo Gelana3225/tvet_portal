@@ -33,14 +33,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear any auth state and redirect to login
+    // Don't redirect on public routes
+    const isPublicRoute = window.location.pathname === '/login' 
+      || window.location.pathname === '/register' 
+      || window.location.pathname === '/';
+    
+    if (error.response?.status === 401 && !isPublicRoute) {
+      // Unauthorized - redirect to login only if not on public page
       window.location.href = '/login';
     }
     
     if (error.response?.status === 419) {
       // CSRF token mismatch - refresh and retry
-      window.location.reload();
+      console.error('CSRF token mismatch');
     }
 
     return Promise.reject(error);
