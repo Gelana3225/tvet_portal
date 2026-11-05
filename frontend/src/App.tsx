@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import StudentDashboardHomePage from './pages/StudentDashboardHomePage';
 import ProfilePage from './pages/ProfilePage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import NewApplicationPage from './pages/NewApplicationPage';
@@ -35,7 +36,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<div className="p-6"><h2 className="text-2xl font-bold">Dashboard Home</h2><p className="mt-2 text-gray-600">Welcome to your student portal!</p></div>} />
+            <Route index element={<StudentDashboardHomePage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="applications" element={<ApplicationsPage />} />
             <Route path="applications/new" element={<NewApplicationPage />} />

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -8,36 +8,32 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { user, login } = useAuth();
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       if (user.role === 'admin' || user.role === 'registrar') {
-        window.location.href = '/admin/dashboard';
+        navigate('/admin/dashboard', { replace: true });
       } else {
-        window.location.href = '/dashboard';
+        navigate('/dashboard', { replace: true });
       }
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    console.log('Login form submitted');
-    console.log('Email:', email);
-
     try {
       const userData = await login(email, password);
-      console.log('Login successful, user data received:', userData);
-      
       const userObj = (userData as any)?.user || userData;
       const role = userObj?.role;
 
       if (role === 'admin' || role === 'registrar' || email.toLowerCase().includes('admin')) {
-        window.location.href = '/admin/dashboard';
+        navigate('/admin/dashboard', { replace: true });
       } else {
-        window.location.href = '/dashboard';
+        navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
       console.error('Login failed:', err);
@@ -58,73 +54,107 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const fillAdminCredentials = () => {
+    setEmail('admin@hawagalan.edu.et');
+    setPassword('Admin@123');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-[#060b26] p-4 font-sans relative overflow-hidden">
+      {/* Vision UI Decorative ambient glowing circles */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#0075ff]/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#7551ff]/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-md w-full vision-card rounded-3xl p-8 sm:p-10 space-y-6 relative z-10 border border-white/10 shadow-2xl">
+        {/* Brand Crest & Header */}
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-[#0075ff] to-[#7551ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
+            <span className="font-black text-xl tracking-wider">HTC</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Sign In
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Hawagalan TVET College Student Portal
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400">
+            Hawagalan TVET College Student & Staff Portal
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="your.email@example.com"
-              />
-            </div>
+        {/* Quick helper pill for Admin */}
+        <div className="bg-[#0f1535] border border-white/10 rounded-2xl p-3 flex items-center justify-between text-xs text-slate-300">
+          <div>
+            <span className="font-bold text-white">Staff Login Demo:</span>
+            <div className="text-[11px] text-[#00d8d6]">admin@hawagalan.edu.et</div>
+          </div>
+          <button
+            type="button"
+            onClick={fillAdminCredentials}
+            className="px-2.5 py-1 bg-[#0075ff] hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition"
+          >
+            Auto-fill
+          </button>
+        </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your password"
-              />
-            </div>
+        {error && (
+          <div className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-4 py-3 rounded-2xl text-xs sm:text-sm flex items-start space-x-2 backdrop-blur-md">
+            <span className="text-base">⚠️</span>
+            <span className="flex-1">{error}</span>
+          </div>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="email" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 vision-input rounded-xl text-sm placeholder:text-slate-500 font-medium"
+              placeholder="e.g. candidate@example.com"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 vision-input rounded-xl text-sm placeholder:text-slate-500 font-medium"
+              placeholder="Enter your account password"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center py-3.5 px-4 bg-[#0075ff] hover:bg-[#0060df] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? (
+              <span className="flex items-center space-x-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>Authenticating...</span>
+              </span>
+            ) : (
+              'Sign In to Portal'
+            )}
           </button>
 
-          <div className="text-center text-sm">
-            <span className="text-gray-600">Don't have an account? </span>
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              Register now
+          <div className="text-center pt-2 text-xs text-slate-400">
+            <span>New applicant? </span>
+            <Link to="/register" className="font-bold text-[#0075ff] hover:text-[#00d8d6] underline underline-offset-2">
+              Create an account now
             </Link>
           </div>
         </form>
