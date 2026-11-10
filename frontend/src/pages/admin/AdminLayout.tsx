@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -152,6 +153,11 @@ const AdminLayout: React.FC = () => {
                 <span>Student View</span>
               </Link>
 
+              {/* Theme Toggle in Sidebar */}
+              <div className="pt-2">
+                <ThemeToggle showLabel={true} className="w-full justify-center py-2.5" />
+              </div>
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-500/20 transition text-left"
@@ -229,6 +235,9 @@ const AdminLayout: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
+
+              {/* Theme Toggle Button */}
+              <ThemeToggle />
 
               {/* User Profile Pill */}
               <div className="hidden sm:flex items-center space-x-2 pl-3 border-l border-white/10">

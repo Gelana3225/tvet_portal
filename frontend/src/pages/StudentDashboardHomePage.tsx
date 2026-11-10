@@ -41,18 +41,18 @@ const StudentDashboardHomePage: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const config: Record<string, { bg: string; dot: string; label: string }> = {
-      draft: { bg: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-400', label: 'Draft' },
-      submitted: { bg: 'bg-[#0075ff]/15 text-[#0075ff] border-[#0075ff]/30', dot: 'bg-[#0075ff] animate-ping', label: 'Submitted' },
-      under_review: { bg: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400', label: 'In Review' },
-      correction_required: { bg: 'bg-orange-500/15 text-orange-400 border-orange-500/30', dot: 'bg-orange-400', label: 'Action Needed' },
-      approved: { bg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400', label: 'Admitted' },
-      rejected: { bg: 'bg-rose-500/15 text-rose-400 border-rose-500/30', dot: 'bg-rose-400', label: 'Not Admitted' },
+    const config: Record<string, { bg: string; dot: string; label: string; text: string }> = {
+      draft: { bg: 'bg-slate-500/15 border-slate-500/30', dot: 'bg-slate-400', label: 'Draft (Incomplete)', text: 'text-slate-300' },
+      submitted: { bg: 'bg-[#0075ff]/15 border-[#0075ff]/30', dot: 'bg-[#0075ff] animate-ping', label: 'Submitted (Pending Review)', text: 'text-[#0075ff]' },
+      under_review: { bg: 'bg-amber-500/15 border-amber-500/30', dot: 'bg-amber-400', label: 'Under Review', text: 'text-amber-400' },
+      correction_required: { bg: 'bg-orange-500/15 border-orange-500/30', dot: 'bg-orange-400', label: 'Action Required (Correction Needed)', text: 'text-orange-400' },
+      approved: { bg: 'bg-emerald-500/15 border-emerald-500/30', dot: 'bg-emerald-400', label: 'Admitted & Approved ✓', text: 'text-emerald-400' },
+      rejected: { bg: 'bg-rose-500/15 border-rose-500/30', dot: 'bg-rose-400', label: 'Not Admitted', text: 'text-rose-400' },
     };
     const c = config[status] || config.draft;
     return (
-      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${c.bg}`}>
-        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${c.dot}`}></span>
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${c.bg} ${c.text}`}>
+        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${c.dot}`}></span>
         {c.label}
       </span>
     );
@@ -67,493 +67,407 @@ const StudentDashboardHomePage: React.FC = () => {
           <div className="w-6 h-6 border-2 border-[#0075ff] border-t-transparent rounded-full"></div>
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-white">Loading Student Portal...</p>
-          <p className="text-xs text-slate-400 mt-1">Retrieving profile, applications, and intake schedule</p>
+          <p className="text-sm font-bold text-white">Loading Your Admission Portal...</p>
+          <p className="text-xs text-slate-400 mt-1">Please wait a moment</p>
         </div>
       </div>
     );
   }
 
-  // Verification readiness score
-  const verificationPercent = latestApp?.status === 'approved' ? 100 : latestApp?.status === 'under_review' ? 75 : latestApp ? 50 : profile ? 35 : 15;
-  const semiCircumference = 220;
-  const gaugeOffset = semiCircumference - (semiCircumference * (verificationPercent / 100));
+  const candidateFirstName = profile?.first_name 
+    ? profile.first_name 
+    : user?.name ? user.name.split(' ')[0] : 'Student';
 
-  const candidateName = profile?.first_name 
-    ? `${profile.first_name} ${profile.last_name || ''}`.trim() 
-    : user?.name || user?.email?.split('@')[0] || 'Applicant';
+  // Determine which step the student is currently on
+  const isProfileComplete = !!(profile && profile.first_name && profile.phone);
+  const hasApplication = !!latestApp;
+  const isSubmitted = latestApp && latestApp.status !== 'draft';
+  const hasUploadedDocs = latestApp && (latestApp.documents?.length > 0);
+  const isAdmitted = latestApp && latestApp.status === 'approved';
+  const needsCorrection = latestApp && latestApp.status === 'correction_required';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* =========================================================================
-          ROW 1: TOP 4 VISION UI KPI METRIC CARDS
+          HERO BANNER: ACTION-DRIVEN REGISTRATION HERO
       ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {/* Card 1: Application Status */}
-        <div className="vision-card rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              Application Status
-            </span>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <span className="text-lg font-black text-white tracking-tight capitalize">
-                {latestApp ? latestApp.status.replace('_', ' ') : 'Not Started'}
-              </span>
-              <span className="text-xs font-bold text-emerald-400">
-                {latestApp ? 'Active' : 'Open'}
-              </span>
+      <div className="vision-card-glow rounded-3xl p-6 sm:p-8 relative overflow-hidden border border-[#0075ff]/30">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#0075ff]/20 text-[#00d8d6] text-xs font-bold border border-[#0075ff]/30">
+              <span className="w-2 h-2 rounded-full bg-[#00d8d6] animate-pulse"></span>
+              <span>{activePeriod ? `${activePeriod.name} (${activePeriod.academic_year})` : 'Fall 2026 Admissions Open'}</span>
             </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-        </div>
 
-        {/* Card 2: Profile Completion */}
-        <div className="vision-card rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              Profile Dossier
-            </span>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <span className="text-xl font-black text-white tracking-tight">
-                {profile ? '100%' : '35%'}
-              </span>
-              <span className={`text-xs font-bold ${profile ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {profile ? 'Complete' : 'Incomplete'}
-              </span>
-            </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-        </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Welcome, {candidateFirstName}!
+            </h1>
 
-        {/* Card 3: Intake Cycle */}
-        <div className="vision-card rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              Intake Cycle
-            </span>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <span className="text-base font-black text-white tracking-tight truncate max-w-[140px]">
-                {activePeriod ? activePeriod.name : 'Fall 2025'}
-              </span>
-              <span className="text-xs font-bold text-emerald-400">
-                Live
-              </span>
-            </div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {!hasApplication
+                ? 'Welcome to Hawagalan TVET College. Complete your 3-step registration below to apply for upcoming vocational programs.'
+                : needsCorrection
+                ? 'The Admissions Office has reviewed your file and requested adjustments on your documents.'
+                : isAdmitted
+                ? `Congratulations! You have been officially admitted to Hawagalan TVET College. Your Student ID has been generated.`
+                : isSubmitted
+                ? `Your application #${latestApp.application_number} is currently with the Registrar Admissions Committee.`
+                : 'You have an application in progress. Complete your document uploads to submit it for review.'}
+            </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
 
-        {/* Card 4: Official ID / TVET Program */}
-        <div className="vision-card rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              Matriculation ID
-            </span>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <span className="text-sm font-black text-[#00d8d6] tracking-tight font-mono">
-                {latestApp?.application_number || 'HTC-PENDING'}
-              </span>
-            </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            </svg>
+          {/* Primary Action Button */}
+          <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {!hasApplication ? (
+              <Link
+                to={!isProfileComplete ? '/dashboard/profile' : '/dashboard/applications/new'}
+                className="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#0075ff] hover:bg-[#0060df] text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-500/30 transition transform hover:-translate-y-0.5"
+              >
+                <span>🚀 Start My Application</span>
+              </Link>
+            ) : needsCorrection ? (
+              <Link
+                to={`/dashboard/applications/${latestApp.id}`}
+                className="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold rounded-2xl shadow-xl shadow-orange-500/30 transition"
+              >
+                <span>⚠️ Fix & Resubmit Documents</span>
+              </Link>
+            ) : !isSubmitted ? (
+              <Link
+                to={`/dashboard/applications/${latestApp.id}`}
+                className="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#0075ff] hover:bg-[#0060df] text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-500/30 transition transform hover:-translate-y-0.5"
+              >
+                <span>✏️ Continue Application</span>
+              </Link>
+            ) : (
+              <Link
+                to={`/dashboard/applications/${latestApp.id}`}
+                className="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-2xl border border-white/20 transition"
+              >
+                <span>📄 View Submitted Dossier</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
       {/* =========================================================================
-          ROW 2: MIDDLE 3 VISION UI CARDS (Cosmic Welcome + Radial Gauge + Quota/Track)
+          INTERACTIVE 4-STEP REGISTRATION CHECKLIST
       ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Card 1: Cosmic Jellyfish Welcome Card (Width ~5 cols) */}
-        <div className="lg:col-span-5 vision-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[280px]">
-          {/* Cosmic Jellyfish & Wave Glowing Background Illustration */}
-          <div className="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none select-none opacity-85 overflow-hidden">
-            <svg
-              className="w-full h-full object-cover transform translate-x-4"
-              viewBox="0 0 320 280"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <radialGradient id="studentJellyGlow" cx="60%" cy="40%" r="55%" fx="60%" fy="35%">
-                  <stop offset="0%" stopColor="#00d8d6" stopOpacity="0.8" />
-                  <stop offset="35%" stopColor="#0075ff" stopOpacity="0.6" />
-                  <stop offset="70%" stopColor="#7551ff" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#060b26" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="studentTentacleGrad" x1="0%" y1="0%" x2="50%" y2="100%">
-                  <stop offset="0%" stopColor="#00d8d6" stopOpacity="0.9" />
-                  <stop offset="40%" stopColor="#0075ff" stopOpacity="0.7" />
-                  <stop offset="100%" stopColor="#7551ff" stopOpacity="0.1" />
-                </linearGradient>
-                <filter id="studentSoftBlur" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="8" />
-                </filter>
-              </defs>
-
-              <circle cx="210" cy="110" r="90" fill="url(#studentJellyGlow)" filter="url(#studentSoftBlur)" />
-
-              {/* Jellyfish Bell */}
-              <path
-                d="M 150,110 C 145,50 275,50 270,110 C 265,125 240,135 210,135 C 180,135 155,125 150,110 Z"
-                fill="url(#studentJellyGlow)"
-                stroke="#00d8d6"
-                strokeWidth="1.5"
-                opacity="0.85"
-              />
-
-              {/* Tentacles */}
-              <path
-                d="M 175,130 C 170,165 195,190 185,240 C 180,265 170,275 165,280"
-                stroke="url(#studentTentacleGrad)"
-                strokeWidth="2.5"
-                fill="none"
-              />
-              <path
-                d="M 195,135 C 200,170 180,205 205,255 C 215,275 220,285 225,290"
-                stroke="url(#studentTentacleGrad)"
-                strokeWidth="3"
-                fill="none"
-              />
-              <path
-                d="M 215,135 C 225,175 235,195 220,245 C 210,265 205,275 200,285"
-                stroke="url(#studentTentacleGrad)"
-                strokeWidth="2"
-                fill="none"
-              />
-              <path
-                d="M 235,132 C 245,160 260,195 250,240 C 245,260 235,270 230,280"
-                stroke="url(#studentTentacleGrad)"
-                strokeWidth="2.5"
-                fill="none"
-              />
-            </svg>
-          </div>
-
-          {/* Text Content Overlay */}
-          <div className="relative z-10 space-y-2 max-w-[65%]">
-            <span className="text-xs text-slate-400 font-semibold">Welcome back,</span>
-            <h2 className="text-2xl font-black text-white tracking-tight">
-              {candidateName}
-            </h2>
-            <p className="text-xs text-slate-300 leading-relaxed pt-1">
-              Glad to see you again! Track your admission review, submit certificates, and manage your technical profile.
-            </p>
-          </div>
-
-          <div className="relative z-10 pt-6">
-            <Link
-              to="/dashboard/applications/new"
-              className="inline-flex items-center text-xs font-bold text-white hover:text-[#0075ff] transition group"
-            >
-              <span>Apply for New TVET Program</span>
-              <span className="ml-1.5 transform group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Card 2: Radial Semi-Circle Gauge ("Dossier Verification") */}
-        <div className="lg:col-span-3 vision-card rounded-2xl p-5 flex flex-col justify-between min-h-[280px]">
-          <div>
-            <h3 className="text-sm font-bold text-white">Verification Status</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Document check & registrar audit
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center justify-center my-1 relative">
-            <div className="relative w-44 h-24 flex items-end justify-center overflow-visible">
-              <svg className="w-44 h-44 overflow-visible" viewBox="0 0 160 160">
-                <defs>
-                  <linearGradient id="studentGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0075ff" />
-                    <stop offset="100%" stopColor="#00d8d6" />
-                  </linearGradient>
-                  <filter id="studentGaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00d8d6" floodOpacity="0.6" />
-                  </filter>
-                </defs>
-
-                {/* Track Background */}
-                <path
-                  d="M 15 110 A 65 65 0 0 1 145 110"
-                  fill="none"
-                  stroke="#1a1f37"
-                  strokeWidth="11"
-                  strokeLinecap="round"
-                />
-
-                {/* Neon Progress Arc */}
-                <path
-                  d="M 15 110 A 65 65 0 0 1 145 110"
-                  fill="none"
-                  stroke="url(#studentGaugeGrad)"
-                  strokeWidth="11"
-                  strokeLinecap="round"
-                  strokeDasharray="220"
-                  strokeDashoffset={gaugeOffset}
-                  filter="url(#studentGaugeGlow)"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-
-              {/* Center Glowing Icon */}
-              <div className="absolute top-7 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/50">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="vision-card rounded-xl px-5 py-2 mt-2 text-center w-full max-w-[200px] border border-white/10">
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold mb-0.5">
-                <span>0%</span>
-                <span>100%</span>
-              </div>
-              <div className="text-xl font-black text-white">{verificationPercent}%</div>
-              <div className="text-[10px] text-slate-400">Dossier Completed</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: TVET Program & Department Track */}
-        <div className="lg:col-span-4 vision-card rounded-2xl p-5 flex flex-col justify-between min-h-[280px]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">Program & Level Track</h3>
-            <button className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition">
-              •••
-            </button>
-          </div>
-
-          <div className="grid grid-cols-12 gap-3 items-center py-2">
-            <div className="col-span-6 space-y-3">
-              <div className="vision-card rounded-xl p-3 border border-white/10">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">
-                  Department
-                </span>
-                <span className="text-xs font-black text-white mt-0.5 block truncate">
-                  {latestApp?.department?.name || 'ICT & Automation'}
-                </span>
-              </div>
-              <div className="vision-card rounded-xl p-3 border border-white/10">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">
-                  Level Tier
-                </span>
-                <span className="text-xs font-black text-[#00d8d6] mt-0.5 block truncate">
-                  Level IV Diploma
-                </span>
-              </div>
-            </div>
-
-            <div className="col-span-6 flex items-center justify-center">
-              <div className="relative w-28 h-28 flex items-center justify-center">
-                <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 110 110">
-                  <defs>
-                    <linearGradient id="studentRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#0075ff" />
-                      <stop offset="100%" stopColor="#00d8d6" />
-                    </linearGradient>
-                  </defs>
-                  <circle
-                    cx="55"
-                    cy="55"
-                    r="44"
-                    fill="none"
-                    stroke="#1a1f37"
-                    strokeWidth="9"
-                  />
-                  <circle
-                    cx="55"
-                    cy="55"
-                    r="44"
-                    fill="none"
-                    stroke="url(#studentRingGrad)"
-                    strokeWidth="9"
-                    strokeDasharray="276"
-                    strokeDashoffset={276 - (276 * 0.88)}
-                    strokeLinecap="round"
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                    Readiness
-                  </span>
-                  <span className="text-xl font-black text-white leading-tight">
-                    9.8
-                  </span>
-                  <span className="text-[9px] text-slate-400">Total Score</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Eligibility Status</span>
-            <span className="font-bold text-emerald-400">Ready for Review</span>
-          </div>
-        </div>
-      </div>
-
-      {/* =========================================================================
-          ROW 3: ADMISSION MILESTONES ROADMAP
-      ========================================================================= */}
-      <div className="vision-card rounded-2xl p-6">
-        <div className="max-w-xl mb-4">
-          <h3 className="text-base font-bold text-white">Your Admission Roadmap</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Follow these four key milestones to finalize your enrollment at Hawagalan TVET College.
+      <div className="vision-card rounded-3xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center space-x-2">
+            <span>📋</span>
+            <span>Your Registration Checklist</span>
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Complete each step below to finalize your registration and secure your admission spot
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Step 1 */}
-          <div className={`p-4 rounded-xl border transition ${profile ? 'bg-[#0075ff]/10 border-[#0075ff]/30 text-white' : 'vision-card border-white/10 text-slate-300'}`}>
-            <div className="flex items-center space-x-2.5">
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${profile ? 'bg-[#0075ff] text-white shadow-md' : 'bg-[#1a1f37] text-slate-400'}`}>
-                {profile ? '✓' : '1'}
-              </span>
-              <span className="text-xs font-bold text-white">1. Student Profile</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* STEP 1: Personal Profile */}
+          <div className={`p-5 rounded-2xl border transition flex flex-col justify-between space-y-4 ${
+            isProfileComplete
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-white/[0.03] border-white/10'
+          }`}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 1</span>
+                {isProfileComplete ? (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span>✓ Completed</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span>Incomplete</span>
+                  </span>
+                )}
+              </div>
+              <h3 className="text-base font-bold text-white">1. Personal & Contact Profile</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Provide your legal full name (Ethiopian 3-name system), contact phone number, local residence address (Woreda & Kebele), and emergency contact.
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              Legal names, contact numbers, address, and passport photo.
-            </p>
+
+            <div className="pt-2">
+              <Link
+                to="/dashboard/profile"
+                className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  isProfileComplete
+                    ? 'bg-white/10 hover:bg-white/20 text-slate-200'
+                    : 'bg-[#0075ff] hover:bg-[#0060df] text-white shadow-md shadow-blue-500/30'
+                }`}
+              >
+                <span>{isProfileComplete ? 'View / Edit Profile' : 'Complete Profile Now →'}</span>
+              </Link>
+            </div>
           </div>
 
-          {/* Step 2 */}
-          <div className={`p-4 rounded-xl border transition ${latestApp ? 'bg-[#0075ff]/10 border-[#0075ff]/30 text-white' : 'vision-card border-white/10 text-slate-300'}`}>
-            <div className="flex items-center space-x-2.5">
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${latestApp ? 'bg-[#0075ff] text-white shadow-md' : 'bg-[#1a1f37] text-slate-400'}`}>
-                {latestApp ? '✓' : '2'}
-              </span>
-              <span className="text-xs font-bold text-white">2. Program Choice</span>
+          {/* STEP 2: Choose TVET Program */}
+          <div className={`p-5 rounded-2xl border transition flex flex-col justify-between space-y-4 ${
+            hasApplication
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : !isProfileComplete
+              ? 'bg-white/[0.01] border-white/5 opacity-70'
+              : 'bg-white/[0.03] border-white/10'
+          }`}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 2</span>
+                {hasApplication ? (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span>✓ Program Selected</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-slate-500 font-semibold">Not Started</span>
+                )}
+              </div>
+              <h3 className="text-base font-bold text-white">2. Select Your TVET Program</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {hasApplication ? (
+                  <>
+                    Selected: <strong className="text-white">{latestApp.department?.name || 'Department'}</strong> • {latestApp.occupation?.name || 'Occupation'} ({latestApp.qualification_level?.name || 'Level'})
+                  </>
+                ) : (
+                  'Choose your technical department (Information Technology, Construction, Automotive, Electrical, Plumbing, Agriculture) and your target Level.'
+                )}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              Department, TVET occupation, and target level (Level I to V).
-            </p>
+
+            <div className="pt-2">
+              {hasApplication ? (
+                <Link
+                  to={`/dashboard/applications/${latestApp.id}`}
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-slate-200 transition"
+                >
+                  <span>View Program Choice</span>
+                </Link>
+              ) : (
+                <Link
+                  to="/dashboard/applications/new"
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#0075ff] hover:bg-[#0060df] text-white shadow-md shadow-blue-500/30 transition"
+                >
+                  <span>Choose Program →</span>
+                </Link>
+              )}
+            </div>
           </div>
 
-          {/* Step 3 */}
-          <div className={`p-4 rounded-xl border transition ${latestApp?.documents?.length > 0 ? 'bg-[#0075ff]/10 border-[#0075ff]/30 text-white' : 'vision-card border-white/10 text-slate-300'}`}>
-            <div className="flex items-center space-x-2.5">
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${latestApp?.documents?.length > 0 ? 'bg-[#0075ff] text-white shadow-md' : 'bg-[#1a1f37] text-slate-400'}`}>
-                {latestApp?.documents?.length > 0 ? '✓' : '3'}
-              </span>
-              <span className="text-xs font-bold text-white">3. Certificates</span>
+          {/* STEP 3: Upload Documents */}
+          <div className={`p-5 rounded-2xl border transition flex flex-col justify-between space-y-4 ${
+            hasUploadedDocs
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : !hasApplication
+              ? 'bg-white/[0.01] border-white/5 opacity-70'
+              : 'bg-white/[0.03] border-white/10'
+          }`}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 3</span>
+                {hasUploadedDocs ? (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span>✓ Documents Uploaded</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-slate-500 font-semibold">Pending Upload</span>
+                )}
+              </div>
+              <h3 className="text-base font-bold text-white">3. Upload Required Documents</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Upload your Grade 10 / Grade 12 educational certificate, official academic transcript, and Kebele / National ID card for verification.
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              National exam results, previous diplomas, and ID proof.
-            </p>
+
+            <div className="pt-2">
+              {hasApplication ? (
+                <Link
+                  to={`/dashboard/applications/${latestApp.id}`}
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#0075ff] hover:bg-[#0060df] text-white shadow-md shadow-blue-500/30 transition"
+                >
+                  <span>{hasUploadedDocs ? 'Manage Documents' : 'Upload Documents Now →'}</span>
+                </Link>
+              ) : (
+                <span className="text-xs text-slate-500 italic">Select program first to unlock upload</span>
+              )}
+            </div>
           </div>
 
-          {/* Step 4 */}
-          <div className={`p-4 rounded-xl border transition ${latestApp?.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/30 text-white' : 'vision-card border-white/10 text-slate-300'}`}>
-            <div className="flex items-center space-x-2.5">
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${latestApp?.status === 'approved' ? 'bg-emerald-500 text-white shadow-md' : 'bg-[#1a1f37] text-slate-400'}`}>
-                {latestApp?.status === 'approved' ? '✓' : '4'}
-              </span>
-              <span className="text-xs font-bold text-white">4. Official ID</span>
+          {/* STEP 4: Review & Admission */}
+          <div className={`p-5 rounded-2xl border transition flex flex-col justify-between space-y-4 ${
+            isAdmitted
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-white shadow-lg shadow-emerald-500/10'
+              : isSubmitted
+              ? 'bg-[#0075ff]/10 border-[#0075ff]/30'
+              : 'bg-white/[0.01] border-white/5 opacity-70'
+          }`}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 4</span>
+                {isAdmitted ? (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500 text-white">
+                    <span>🎓 Admitted</span>
+                  </span>
+                ) : isSubmitted ? (
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span>In Review</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-slate-500 font-semibold">Waiting for Submission</span>
+                )}
+              </div>
+              <h3 className="text-base font-bold text-white">4. Admission & Student ID</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {isAdmitted ? (
+                  <>
+                    Congratulations! Your Student Matriculation ID has been issued. You are officially enrolled for this academic year.
+                  </>
+                ) : isSubmitted ? (
+                  'Your application is currently under formal review by the Registrar. You will be notified once verified.'
+                ) : (
+                  'After you upload all required documents and click submit, the Registrar will review your file and generate your official College Student ID.'
+                )}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              Receive your matriculation ID and orientation schedule.
-            </p>
+
+            <div className="pt-2">
+              {hasApplication && (
+                <Link
+                  to={`/dashboard/applications/${latestApp.id}`}
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-slate-200 transition"
+                >
+                  <span>Track Review Status →</span>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* =========================================================================
-          ROW 4: RECENT APPLICATIONS TABLE
+          ROW 3: APPLICATION STATUS DETAILS & CONTACT SUPPORT
       ========================================================================= */}
-      <div className="vision-card rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-          <div>
-            <h3 className="text-base font-bold text-white">My Admission Applications</h3>
-            <p className="text-xs text-slate-400 mt-0.5 flex items-center">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
-              <span>Track status updates and official feedback</span>
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Current Application Summary */}
+        <div className="lg:col-span-2 vision-card rounded-3xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-white">My Active Application</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Summary of your current application dossier</p>
+            </div>
+            {latestApp && getStatusBadge(latestApp.status)}
           </div>
-          <Link
-            to="/dashboard/applications/new"
-            className="inline-flex items-center px-4 py-2 rounded-xl bg-[#0075ff] hover:bg-[#0060df] text-white text-xs font-semibold shadow-lg shadow-blue-500/30 transition"
-          >
-            <span>+ Apply for New Program</span>
-          </Link>
+
+          {latestApp ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Application Number</span>
+                  <span className="font-mono text-sm font-bold text-[#0075ff] mt-0.5 block">{latestApp.application_number}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Department</span>
+                  <span className="text-sm font-semibold text-white mt-0.5 block">{latestApp.department?.name || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Occupation / Trade</span>
+                  <span className="text-sm font-semibold text-white mt-0.5 block">{latestApp.occupation?.name || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Qualification Level</span>
+                  <span className="text-sm font-semibold text-[#00d8d6] mt-0.5 block">{latestApp.qualification_level?.name || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Admission Period</span>
+                  <span className="text-sm font-semibold text-white mt-0.5 block">{latestApp.admission_period?.name || 'Current Intake'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[10px] font-bold block">Documents Attached</span>
+                  <span className="text-sm font-semibold text-white mt-0.5 block">{latestApp.documents?.length || 0} Files</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between border-t border-white/5">
+                <span className="text-xs text-slate-400">
+                  {latestApp.submitted_at 
+                    ? `Submitted on: ${new Date(latestApp.submitted_at).toLocaleDateString('en-GB')}` 
+                    : 'Application is currently in draft mode'}
+                </span>
+                <Link
+                  to={`/dashboard/applications/${latestApp.id}`}
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0075ff]/20 hover:bg-[#0075ff] text-[#0075ff] hover:text-white text-xs font-bold transition border border-[#0075ff]/30"
+                >
+                  <span>Open Full Application →</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#0075ff]/10 flex items-center justify-center mx-auto text-[#0075ff] text-xl">
+                📝
+              </div>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                You have not started an application yet. Click the button below to choose your desired vocational trade.
+              </p>
+              <Link
+                to={!isProfileComplete ? '/dashboard/profile' : '/dashboard/applications/new'}
+                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#0075ff] hover:bg-[#0060df] text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/30 transition"
+              >
+                <span>Start New Application</span>
+              </Link>
+            </div>
+          )}
         </div>
 
-        {applications.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs">
-            <p>You haven't submitted any admission applications yet.</p>
-            <Link
-              to="/dashboard/applications/new"
-              className="inline-block mt-3 text-xs font-bold text-[#0075ff] hover:underline"
+        {/* Right: Help & Registrar Contact */}
+        <div className="vision-card rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-[#0075ff]/20 text-[#0075ff] flex items-center justify-center font-bold text-sm">
+                📞
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Need Help Registering?</h3>
+                <p className="text-[11px] text-slate-400">Registrar Admissions Help Desk</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              If you have questions about required documents, TVET qualification levels, or deadlines, contact our admissions office:
+            </p>
+
+            <div className="space-y-2 text-xs text-slate-300 pt-1">
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-500">📞 Phone:</span>
+                <span className="font-semibold text-white">+251 91 100 0000 / 025 111 2233</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-500">✉️ Email:</span>
+                <span className="font-semibold text-[#00d8d6]">admissions@hawagalantvt.edu.et</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-500">📍 Campus:</span>
+                <span className="text-white">Hawagalan Main Campus, Registrar Office</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-500">⏰ Hours:</span>
+                <span className="text-slate-300">Mon - Fri: 8:30 AM - 5:00 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-white/5">
+            <a
+              href="https://hawagalantvt.edu.et"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition"
             >
-              Start your application now →
-            </Link>
+              ← Visit College Website
+            </a>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-white/10 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="pb-3.5 px-3">Application Number</th>
-                  <th className="pb-3.5 px-3">Department & Occupation</th>
-                  <th className="pb-3.5 px-3">Status</th>
-                  <th className="pb-3.5 px-3">Submission Date</th>
-                  <th className="pb-3.5 px-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-white/[0.02] transition">
-                    <td className="py-3.5 px-3 font-mono font-bold text-white">
-                      {app.application_number}
-                    </td>
-
-                    <td className="py-3.5 px-3">
-                      <div className="text-white font-medium">{app.department?.name || 'TVET Program'}</div>
-                      <div className="text-[11px] text-slate-400">{app.occupation?.name || 'General'}</div>
-                    </td>
-
-                    <td className="py-3.5 px-3">
-                      {getStatusBadge(app.status)}
-                    </td>
-
-                    <td className="py-3.5 px-3 text-slate-400 text-[11px]">
-                      {app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : 'Draft'}
-                    </td>
-
-                    <td className="py-3.5 px-3 text-right">
-                      <Link
-                        to={`/dashboard/applications/${app.id}`}
-                        className="inline-flex items-center px-3 py-1.5 rounded-xl bg-[#0075ff]/20 hover:bg-[#0075ff] text-[#0075ff] hover:text-white font-bold transition text-[11px] border border-[#0075ff]/30"
-                      >
-                        View Dossier →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -158,6 +159,11 @@ const DashboardPage: React.FC = () => {
                   </Link>
                 )}
 
+                {/* Theme Toggle in Sidebar */}
+                <div className="pt-2">
+                  <ThemeToggle showLabel={true} className="w-full justify-center py-2.5" />
+                </div>
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-500/10 transition"
@@ -260,6 +266,9 @@ const DashboardPage: React.FC = () => {
                 {user?.name || user?.email?.split('@')[0]}
               </span>
             </div>
+
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
 
             {/* Quick Logout Button */}
             <button

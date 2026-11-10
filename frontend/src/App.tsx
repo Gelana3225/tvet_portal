@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
@@ -21,9 +22,10 @@ import './index.css';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
+      <ThemeProvider>
+        <Router>
+          <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           
@@ -62,7 +64,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
+    </ThemeProvider>
+  </AuthProvider>
   );
 }
 

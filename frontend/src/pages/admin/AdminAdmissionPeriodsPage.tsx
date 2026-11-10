@@ -14,19 +14,24 @@ interface AdmissionPeriodItem {
   created_at: string;
 }
 
+const periodStatusConfig = {
+  open:   { label: 'Open',   color: 'text-emerald-300', bg: 'bg-emerald-500/20', border: 'border-emerald-500/30' },
+  closed: { label: 'Closed', color: 'text-rose-300',    bg: 'bg-rose-500/20',    border: 'border-rose-500/30' },
+  draft:  { label: 'Draft',  color: 'text-slate-300',   bg: 'bg-slate-500/20',   border: 'border-slate-500/30' },
+};
+
+const inputCls = "w-full px-4 py-3 vision-input rounded-xl text-sm placeholder:text-slate-500 font-medium";
+const labelCls = "block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5";
+
 const AdminAdmissionPeriodsPage: React.FC = () => {
   const [periods, setPeriods] = useState<AdmissionPeriodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<AdmissionPeriodItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState('');
-
-  // Form fields
   const [formData, setFormData] = useState({
     name: '',
     academic_year: '',
@@ -36,9 +41,7 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
     description: '',
   });
 
-  useEffect(() => {
-    loadPeriods();
-  }, []);
+  useEffect(() => { loadPeriods(); }, []);
 
   const loadPeriods = async () => {
     try {
@@ -47,7 +50,6 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
       const data = await adminApi.getAdmissionPeriods();
       setPeriods(data.admission_periods || []);
     } catch (err: any) {
-      console.error('Failed to load admission periods:', err);
       setError(err.response?.data?.message || 'Failed to load admission periods.');
     } finally {
       setLoading(false);
@@ -58,16 +60,8 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
     setEditingPeriod(null);
     const today = new Date().toISOString().split('T')[0];
     const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const currentYear = new Date().getFullYear();
-
-    setFormData({
-      name: `Admission Period ${currentYear}`,
-      academic_year: `${currentYear}/${currentYear + 1}`,
-      opening_date: today,
-      closing_date: nextMonth,
-      status: 'open',
-      description: '',
-    });
+    const y = new Date().getFullYear();
+    setFormData({ name: `Admission Period ${y}`, academic_year: `${y}/${y + 1}`, opening_date: today, closing_date: nextMonth, status: 'open', description: '' });
     setModalError('');
     setIsModalOpen(true);
   };
@@ -86,45 +80,33 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingPeriod(null);
-    setModalError('');
-  };
+  const closeModal = () => { setIsModalOpen(false); setEditingPeriod(null); setModalError(''); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError('');
-
     if (!formData.name.trim() || !formData.academic_year.trim()) {
-      setModalError('Please fill in both the name and academic year.');
-      return;
+      setModalError('Please fill in both the name and academic year.'); return;
     }
-
     if (!formData.opening_date || !formData.closing_date) {
-      setModalError('Please specify opening and closing dates.');
-      return;
+      setModalError('Please specify opening and closing dates.'); return;
     }
-
     if (new Date(formData.closing_date) <= new Date(formData.opening_date)) {
-      setModalError('Closing date must be strictly after the opening date.');
-      return;
+      setModalError('Closing date must be after the opening date.'); return;
     }
-
     try {
       setSubmitting(true);
       if (editingPeriod) {
         await adminApi.updateAdmissionPeriod(editingPeriod.id, formData);
-        setSuccessMessage(`Admission period "${formData.name}" updated successfully.`);
+        setSuccessMessage(`Period "${formData.name}" updated successfully.`);
       } else {
         await adminApi.createAdmissionPeriod(formData);
-        setSuccessMessage(`Admission period "${formData.name}" created successfully.`);
+        setSuccessMessage(`Period "${formData.name}" created successfully.`);
       }
       closeModal();
       loadPeriods();
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
-      console.error('Failed to save admission period:', err);
       setModalError(err.response?.data?.message || 'Failed to save admission period.');
     } finally {
       setSubmitting(false);
@@ -134,7 +116,7 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
   const handleQuickStatusChange = async (period: AdmissionPeriodItem, newStatus: 'draft' | 'open' | 'closed') => {
     try {
       await adminApi.updateAdmissionPeriod(period.id, { status: newStatus });
-      setSuccessMessage(`Period "${period.name}" status changed to ${newStatus}.`);
+      setSuccessMessage(`"${period.name}" status changed to ${newStatus}.`);
       loadPeriods();
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
@@ -142,302 +124,221 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string, isActive: boolean) => {
-    if (status === 'open') {
-      return (
-        <div className="flex items-center space-x-2">
-          <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-            Open
-          </span>
-          {isActive ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-              Live & Accepting
-            </span>
-          ) : (
-            <span className="text-xs text-gray-400">(Date Window Inactive)</span>
-          )}
-        </div>
-      );
-    }
-    if (status === 'closed') {
-      return (
-        <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-          Closed
-        </span>
-      );
-    }
-    return (
-      <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-        Draft
-      </span>
-    );
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="p-4 sm:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admission Periods</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Configure academic years, application windows, and intake intake status for TVET programs.
-          </p>
+          <h1 className="text-xl font-bold text-white">Admission Periods</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Configure academic years, application windows, and intake status for TVET programs.</p>
         </div>
-        <div>
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
-          >
-            <svg
-              className="-ml-1 mr-2 h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Create Admission Period
-          </button>
-        </div>
+        <button
+          onClick={openCreateModal}
+          className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#0075ff] hover:bg-[#0060df] text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Admission Period</span>
+        </button>
       </div>
 
-      {/* Success Notification */}
       {successMessage && (
-        <div className="rounded-md bg-green-50 p-4 border border-green-200 flex items-center justify-between">
-          <div className="flex items-center">
-            <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-sm font-medium text-green-800">{successMessage}</span>
-          </div>
-          <button
-            onClick={() => setSuccessMessage('')}
-            className="text-green-500 hover:text-green-700 text-sm font-bold"
-          >
-            ×
-          </button>
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl text-xs flex items-center justify-between">
+          <span className="flex items-center space-x-2"><span>✅</span><span>{successMessage}</span></span>
+          <button onClick={() => setSuccessMessage('')} className="text-emerald-400 hover:text-white font-bold">×</button>
         </div>
       )}
 
-      {/* Error Notification */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200 flex items-center justify-between">
-          <div className="flex items-center">
-            <svg className="h-5 w-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-sm font-medium text-red-800">{error}</span>
-          </div>
-          <button
-            onClick={() => setError('')}
-            className="text-red-500 hover:text-red-700 text-sm font-bold"
-          >
-            ×
-          </button>
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-2xl text-xs flex items-center justify-between">
+          <span className="flex items-center space-x-2"><span>⚠️</span><span>{error}</span></span>
+          <button onClick={() => setError('')} className="text-rose-400 hover:text-white font-bold">×</button>
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Table */}
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-3 text-sm text-gray-500">Loading admission periods...</p>
+        <div className="vision-card rounded-3xl p-12 flex flex-col items-center space-y-3">
+          <div className="w-10 h-10 border-2 border-[#0075ff] border-t-transparent rounded-full animate-spin" />
+          <span className="text-slate-400 text-sm">Loading admission periods...</span>
         </div>
       ) : periods.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="text-4xl mb-3">📅</div>
-          <h3 className="text-lg font-medium text-gray-900">No Admission Periods Found</h3>
-          <p className="mt-1 text-sm text-gray-500 max-w-md mx-auto">
-            Get started by creating an admission period so prospective students can submit applications for upcoming batches.
-          </p>
+        <div className="vision-card rounded-3xl p-12 text-center space-y-5">
+          <div className="w-16 h-16 rounded-2xl bg-[#0075ff]/10 border border-[#0075ff]/20 flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-[#0075ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">No Admission Periods Found</h3>
+            <p className="text-slate-400 text-sm mt-1 max-w-md mx-auto">Create an admission period so prospective students can submit applications.</p>
+          </div>
           <button
             onClick={openCreateModal}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-[#0075ff] hover:bg-[#0060df] text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/30 transition"
           >
-            Create Your First Period
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Create Your First Period</span>
           </button>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Period Details
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Academic Year
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Timeline
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Applications
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {periods.map((period) => (
-                <tr key={period.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-gray-900">{period.name}</div>
-                    {period.description && (
-                      <div className="text-xs text-gray-500 line-clamp-2 max-w-xs">{period.description}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2.5 py-1 text-xs font-bold bg-blue-50 text-blue-700 rounded-md">
-                      {period.academic_year}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <div><span className="text-xs font-semibold text-gray-400">Open:</span> {period.opening_date}</div>
-                    <div><span className="text-xs font-semibold text-gray-400">Close:</span> {period.closing_date}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(period.status, period.is_active)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-                      {period.applications_count} submissions
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => openEditModal(period)}
-                      className="text-blue-600 hover:text-blue-900 font-semibold text-xs px-2 py-1 rounded bg-blue-50 hover:bg-blue-100"
-                    >
-                      Edit
-                    </button>
-
-                    {period.status !== 'open' && (
-                      <button
-                        onClick={() => handleQuickStatusChange(period, 'open')}
-                        className="text-emerald-600 hover:text-emerald-900 font-semibold text-xs px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100"
-                      >
-                        Set Open
-                      </button>
-                    )}
-
-                    {period.status === 'open' && (
-                      <button
-                        onClick={() => handleQuickStatusChange(period, 'closed')}
-                        className="text-red-600 hover:text-red-900 font-semibold text-xs px-2 py-1 rounded bg-red-50 hover:bg-red-100"
-                      >
-                        Close
-                      </button>
-                    )}
-                  </td>
+        <div className="vision-card rounded-3xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{periods.length} Period{periods.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/5">
+                  {['Period Details', 'Academic Year', 'Timeline', 'Status', 'Applications', 'Actions'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {periods.map((period, idx) => {
+                  const st = periodStatusConfig[period.status] || periodStatusConfig.draft;
+                  return (
+                    <tr key={period.id} className={`border-b border-white/5 hover:bg-white/5 transition ${idx % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-white">{period.name}</p>
+                        {period.description && (
+                          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-[200px]">{period.description}</p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2.5 py-1 text-xs font-bold bg-[#0075ff]/10 text-[#0075ff] rounded-lg border border-[#0075ff]/20">
+                          {period.academic_year}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400 space-y-1">
+                        <div><span className="text-slate-500">Open:</span> {period.opening_date}</div>
+                        <div><span className="text-slate-500">Close:</span> {period.closing_date}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold border ${st.bg} ${st.color} ${st.border}`}>
+                            {st.label}
+                          </span>
+                          {period.status === 'open' && period.is_active && (
+                            <div className="flex items-center space-x-1">
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                              <span className="text-[10px] text-emerald-400 font-semibold">Live & Accepting</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-bold text-white">{period.applications_count}</span>
+                        <span className="text-xs text-slate-400 ml-1">submissions</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => openEditModal(period)}
+                            className="px-3 py-1.5 rounded-lg bg-[#0075ff]/10 hover:bg-[#0075ff]/20 text-[#0075ff] text-xs font-semibold border border-[#0075ff]/20 transition"
+                          >
+                            Edit
+                          </button>
+                          {period.status !== 'open' && (
+                            <button
+                              onClick={() => handleQuickStatusChange(period, 'open')}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold border border-emerald-500/20 transition"
+                            >
+                              Open
+                            </button>
+                          )}
+                          {period.status === 'open' && (
+                            <button
+                              onClick={() => handleQuickStatusChange(period, 'closed')}
+                              className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/20 transition"
+                            >
+                              Close
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-lg max-w-lg w-full shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="vision-card rounded-3xl max-w-lg w-full shadow-2xl relative overflow-hidden border border-white/10">
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#0075ff] to-transparent" />
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+              <h3 className="text-base font-black text-white">
                 {editingPeriod ? `Edit "${editingPeriod.name}"` : 'Create New Admission Period'}
               </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-              >
-                ×
-              </button>
+              <button onClick={closeModal} className="text-slate-400 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition">×</button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {modalError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-2xl text-xs">
                   {modalError}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Period Name *
-                </label>
+                <label className={labelCls}>Period Name <span className="text-rose-400">*</span></label>
                 <input
-                  type="text"
-                  required
+                  type="text" required
                   placeholder="e.g. 2026 Regular Intake"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className={inputCls}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Academic Year *
-                </label>
+                <label className={labelCls}>Academic Year <span className="text-rose-400">*</span></label>
                 <input
-                  type="text"
-                  required
+                  type="text" required
                   placeholder="e.g. 2026/2027"
                   value={formData.academic_year}
-                  onChange={(e) => setFormData({ ...formData, academic_year: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={e => setFormData({ ...formData, academic_year: e.target.value })}
+                  className={inputCls}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Opening Date *
-                  </label>
+                  <label className={labelCls}>Opening Date <span className="text-rose-400">*</span></label>
                   <input
-                    type="date"
-                    required
+                    type="date" required
                     value={formData.opening_date}
-                    onChange={(e) => setFormData({ ...formData, opening_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                    onChange={e => setFormData({ ...formData, opening_date: e.target.value })}
+                    className={inputCls}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Closing Date *
-                  </label>
+                  <label className={labelCls}>Closing Date <span className="text-rose-400">*</span></label>
                   <input
-                    type="date"
-                    required
+                    type="date" required
                     value={formData.closing_date}
-                    onChange={(e) => setFormData({ ...formData, closing_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                    onChange={e => setFormData({ ...formData, closing_date: e.target.value })}
+                    className={inputCls}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Status *
-                </label>
+                <label className={labelCls}>Status <span className="text-rose-400">*</span></label>
                 <select
                   value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value as 'draft' | 'open' | 'closed' })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={e => setFormData({ ...formData, status: e.target.value as 'draft' | 'open' | 'closed' })}
+                  className="w-full px-4 py-3 rounded-xl text-sm font-medium bg-[#0f1735] border border-white/10 text-white focus:border-[#0075ff] focus:outline-none"
                 >
                   <option value="draft">Draft (Hidden from applicants)</option>
                   <option value="open">Open (Publicly accepts applications)</option>
@@ -446,31 +347,29 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Description / Instructions (Optional)
-                </label>
+                <label className={labelCls}>Description / Instructions (Optional)</label>
                 <textarea
                   rows={3}
-                  placeholder="Notes for applicants or staff about eligibility, entry criteria, or batches..."
+                  placeholder="Notes for applicants about eligibility, entry criteria, or batches..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-3 vision-input rounded-xl text-sm placeholder:text-slate-500 resize-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-gray-200 flex justify-end space-x-3">
+              <div className="pt-4 border-t border-white/10 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={submitting}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  className="px-5 py-2.5 text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                  className="px-5 py-2.5 text-sm font-bold text-white bg-[#0075ff] hover:bg-[#0060df] rounded-xl shadow-lg shadow-blue-500/30 transition disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingPeriod ? 'Save Changes' : 'Create Period'}
                 </button>
@@ -484,4 +383,3 @@ const AdminAdmissionPeriodsPage: React.FC = () => {
 };
 
 export default AdminAdmissionPeriodsPage;
-
