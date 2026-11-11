@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ThemeToggle from '../../components/ThemeToggle';
+import CollegeLogo from '../../components/CollegeLogo';
 
 const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -46,15 +47,13 @@ const AdminLayout: React.FC = () => {
           {/* Top Brand & Logo */}
           <div className="space-y-6">
             <div className="flex items-center space-x-3 px-2 py-1">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0075ff] via-[#102a71] to-[#7551ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                <span className="font-black text-sm tracking-widest">HTC</span>
-              </div>
+              <CollegeLogo size={40} />
               <div>
                 <span className="font-extrabold text-sm tracking-wider text-white uppercase block">
-                  VISION PORTAL
+                  REGISTRAR & ADMIN
                 </span>
-                <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">
-                  Hawagalan TVET
+                <span className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase block">
+                  Hawa Gelan TVET
                 </span>
               </div>
             </div>
@@ -179,7 +178,7 @@ const AdminLayout: React.FC = () => {
                 ?
               </div>
               <h4 className="text-xs font-bold text-white">Need help?</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">Hawagalan TVET College Support & Admissions Desk</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Hawa Gelan TVET College Support & Admissions Desk</p>
               <div className="mt-3">
                 <span className="inline-block px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-bold text-white tracking-wider uppercase transition">
                   Staff Guide
@@ -276,7 +275,7 @@ const AdminLayout: React.FC = () => {
         <footer className="px-4 sm:px-8 py-5 text-center text-xs text-slate-500">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/5 pt-4">
             <div>
-              © {new Date().getFullYear()} <strong>Hawagalan TVET College</strong> • Admissions & Student Management
+              © {new Date().getFullYear()} <strong>Hawa Gelan TVET College</strong> • Admissions & Student Management
             </div>
             <div className="flex items-center space-x-2 text-[11px] text-slate-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>

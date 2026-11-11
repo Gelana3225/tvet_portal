@@ -14,47 +14,44 @@ class DepartmentSeeder extends Seeder
     {
         $departments = [
             [
-                'name' => 'Information Technology',
-                'code' => 'IT',
-                'description' => 'Computer programming, networking, and IT support',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Construction',
-                'code' => 'CONST',
-                'description' => 'Building construction and related trades',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Automotive Technology',
-                'code' => 'AUTO',
-                'description' => 'Vehicle maintenance and repair',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Electrical Installation',
-                'code' => 'ELEC',
-                'description' => 'Electrical wiring and installation',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Plumbing',
-                'code' => 'PLUMB',
-                'description' => 'Water and drainage systems installation',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Agriculture',
+                'name' => 'Agricultural Technology',
                 'code' => 'AGRI',
-                'description' => 'Crop production and agricultural technologies',
+                'description' => 'Modern farming techniques, crop management, livestock husbandry, and sustainable agriculture.',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Manufacturing & Industrial Technology',
+                'code' => 'MFG',
+                'description' => 'Metal fabrication, welding, machine operations, woodwork, and modern furniture design.',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Information & Communication Technology',
+                'code' => 'ICT',
+                'description' => 'Fundamental IT skills, hardware maintenance, software systems, and network infrastructure.',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Construction & Building Technology',
+                'code' => 'CONST',
+                'description' => 'Building fundamentals, masonry, concrete work, civil structures, and site safety.',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Textile & Garment Technology',
+                'code' => 'TEXTILE',
+                'description' => 'Textile design, modern tailoring, industrial sewing, and apparel manufacturing.',
                 'is_active' => true,
             ],
         ];
 
-        foreach ($departments as $department) {
-            Department::create($department);
+        foreach ($departments as $data) {
+            Department::updateOrCreate(
+                ['code' => $data['code']],
+                $data
+            );
         }
 
-        echo "Departments seeded successfully!\n";
+        echo "Hawa Gelan TVET College departments seeded successfully!\n";
     }
 }

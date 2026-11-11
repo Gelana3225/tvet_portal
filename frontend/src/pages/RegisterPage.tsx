@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import CollegeLogo from '../components/CollegeLogo';
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -83,12 +84,10 @@ const RegisterPage: React.FC = () => {
       {/* Top Floating Header */}
       <header className="w-full max-w-7xl mx-auto p-4 sm:p-6 flex items-center justify-between relative z-20">
         <Link to="/register" className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0075ff] via-[#102a71] to-[#7551ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/40 group-hover:scale-105 transition">
-            <span className="font-black text-sm tracking-widest">HTC</span>
-          </div>
+          <CollegeLogo size={42} />
           <div>
             <span className="font-extrabold text-sm tracking-wider text-white uppercase block leading-tight">
-              Hawagalan TVET
+              Hawa Gelan TVET
             </span>
             <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">
               College Admissions Portal
@@ -264,7 +263,7 @@ const RegisterPage: React.FC = () => {
       </main>
 
       <footer className="w-full py-4 px-4 text-center text-[11px] text-slate-500 relative z-20">
-        <span>🔒 256-Bit SSL Encrypted • Official Hawagalan TVET College Admissions Network</span>
+        <span>🔒 256-Bit SSL Encrypted • Official Hawa Gelan TVET College Admissions Network</span>
       </footer>
     </div>
   );

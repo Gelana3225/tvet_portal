@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import CollegeLogo from '../components/CollegeLogo';
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -49,15 +50,13 @@ const DashboardPage: React.FC = () => {
           {/* Top Brand & Logo */}
           <div className="space-y-6">
             <div className="flex items-center space-x-3 px-2 py-1">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0075ff] via-[#102a71] to-[#7551ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                <span className="font-black text-sm tracking-widest">HTC</span>
-              </div>
+              <CollegeLogo size={40} />
               <div>
                 <span className="font-extrabold text-sm tracking-wider text-white uppercase block">
                   STUDENT PORTAL
                 </span>
-                <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">
-                  Hawagalan TVET
+                <span className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase block">
+                  Hawa Gelan TVET
                 </span>
               </div>
             </div>
@@ -189,10 +188,10 @@ const DashboardPage: React.FC = () => {
               </div>
               <div className="text-xs font-bold text-white">Need Help?</div>
               <p className="text-[11px] text-slate-300">
-                Hawagalan Registrar Office is open Mon-Fri 8:30am - 5:00pm.
+                Hawa Gelan Registrar Office is open Mon-Fri 8:30am - 5:00pm.
               </p>
               <a
-                href="mailto:admissions@hawagalan.edu.et"
+                href="mailto:admissions@hawagalantvt.edu.et"
                 className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold border border-white/15 transition mt-2"
               >
                 Contact Registrar

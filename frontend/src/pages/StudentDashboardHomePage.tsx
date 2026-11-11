@@ -105,11 +105,11 @@ const StudentDashboardHomePage: React.FC = () => {
 
             <p className="text-sm text-slate-300 leading-relaxed">
               {!hasApplication
-                ? 'Welcome to Hawagalan TVET College. Complete your 3-step registration below to apply for upcoming vocational programs.'
+                ? 'Welcome to Hawa Gelan TVET College. Complete your 3-step registration below to apply for upcoming vocational programs.'
                 : needsCorrection
                 ? 'The Admissions Office has reviewed your file and requested adjustments on your documents.'
                 : isAdmitted
-                ? `Congratulations! You have been officially admitted to Hawagalan TVET College. Your Student ID has been generated.`
+                ? `Congratulations! You have been officially admitted to Hawa Gelan TVET College. Your Student ID has been generated.`
                 : isSubmitted
                 ? `Your application #${latestApp.application_number} is currently with the Registrar Admissions Committee.`
                 : 'You have an application in progress. Complete your document uploads to submit it for review.'}
@@ -448,7 +448,7 @@ const StudentDashboardHomePage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-slate-500">📍 Campus:</span>
-                <span className="text-white">Hawagalan Main Campus, Registrar Office</span>
+                <span className="text-white">Hawa Gelan Main Campus, Registrar Office</span>
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-slate-500">⏰ Hours:</span>

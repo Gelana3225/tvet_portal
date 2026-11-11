@@ -14,46 +14,80 @@ class OccupationSeeder extends Seeder
     public function run(): void
     {
         $occupations = [
-            // IT Department
-            ['dept_code' => 'IT', 'name' => 'Software Development', 'code' => 'IT-SD', 'description' => 'Programming and software development Level III'],
-            ['dept_code' => 'IT', 'name' => 'Network Administration', 'code' => 'IT-NA', 'description' => 'Computer networking Level III'],
-            ['dept_code' => 'IT', 'name' => 'Database Administration', 'code' => 'IT-DBA', 'description' => 'Database management Level III'],
-            
-            // Construction Department
-            ['dept_code' => 'CONST', 'name' => 'Building Construction', 'code' => 'CONST-BC', 'description' => 'Building and construction Level III'],
-            ['dept_code' => 'CONST', 'name' => 'Masonry', 'code' => 'CONST-MAS', 'description' => 'Brick and stone masonry Level III'],
-            ['dept_code' => 'CONST', 'name' => 'Carpentry', 'code' => 'CONST-CARP', 'description' => 'Wood construction and finishing Level III'],
-            
-            // Automotive Department
-            ['dept_code' => 'AUTO', 'name' => 'Auto Mechanics', 'code' => 'AUTO-MECH', 'description' => 'Vehicle maintenance and repair Level III'],
-            ['dept_code' => 'AUTO', 'name' => 'Auto Body Repair', 'code' => 'AUTO-BODY', 'description' => 'Vehicle body repair and painting Level III'],
-            
-            // Electrical Department
-            ['dept_code' => 'ELEC', 'name' => 'Electrical Installation', 'code' => 'ELEC-INST', 'description' => 'Residential and commercial electrical installation Level III'],
-            ['dept_code' => 'ELEC', 'name' => 'Industrial Electrical', 'code' => 'ELEC-IND', 'description' => 'Industrial electrical systems Level III'],
-            
-            // Plumbing Department
-            ['dept_code' => 'PLUMB', 'name' => 'Plumbing Installation', 'code' => 'PLUMB-INST', 'description' => 'Water and drainage systems Level III'],
-            
-            // Agriculture Department
-            ['dept_code' => 'AGRI', 'name' => 'Crop Production', 'code' => 'AGRI-CROP', 'description' => 'Modern crop production techniques Level III'],
-            ['dept_code' => 'AGRI', 'name' => 'Animal Husbandry', 'code' => 'AGRI-ANIM', 'description' => 'Livestock management Level III'],
+            // Agricultural Technology
+            [
+                'dept_code' => 'AGRI',
+                'name' => 'Crop Production',
+                'code' => 'AGRI-CROP',
+                'description' => 'Agronomy, soil science, pest management, and maximizing crop yield. Level I - IV, Grade 12.',
+            ],
+            [
+                'dept_code' => 'AGRI',
+                'name' => 'Animal Production',
+                'code' => 'AGRI-ANIM',
+                'description' => 'Livestock management, animal health, breeding, and sustainable animal farming. Level I - IV, Grade 12.',
+            ],
+            [
+                'dept_code' => 'AGRI',
+                'name' => 'General Agriculture',
+                'code' => 'AGRI-GEN',
+                'description' => 'Modern farming techniques, crop management, and sustainable agriculture. Level I - IV, Grade 12.',
+            ],
+
+            // Manufacturing & Industrial Technology
+            [
+                'dept_code' => 'MFG',
+                'name' => 'General Metal Fabrication and Assembly',
+                'code' => 'MFG-GMFA',
+                'description' => 'Welding, sheet metal work, structural metal fabrication, and machine operations. Level I - IV, Grade 12.',
+            ],
+            [
+                'dept_code' => 'MFG',
+                'name' => 'Wood Work Technology',
+                'code' => 'MFG-WWT',
+                'description' => 'Design, fabrication, and finishing of modern and traditional furniture. Level I - IV, Grade 12.',
+            ],
+
+            // Information & Communication Technology
+            [
+                'dept_code' => 'ICT',
+                'name' => 'Hardware and Networking Service (HNS)',
+                'code' => 'ICT-HNS',
+                'description' => 'Fundamental IT skills, software and hardware maintenance, network infrastructure. Level I - IV, Grade 12.',
+            ],
+
+            // Construction & Building Technology
+            [
+                'dept_code' => 'CONST',
+                'name' => 'Structural Construction Work (SCW)',
+                'code' => 'CONST-SCW',
+                'description' => 'Building fundamentals, masonry, concrete work, and site safety. Level I - IV, Grade 12.',
+            ],
+
+            // Textile & Garment Technology
+            [
+                'dept_code' => 'TEXTILE',
+                'name' => 'Garment',
+                'code' => 'TEX-GARM',
+                'description' => 'Textile design, tailoring, apparel manufacturing, and quality control. Level I - IV, Grade 12.',
+            ],
         ];
 
-        foreach ($occupations as $occupationData) {
-            $department = Department::where('code', $occupationData['dept_code'])->first();
-            
-            if ($department) {
-                Occupation::create([
-                    'department_id' => $department->id,
-                    'name' => $occupationData['name'],
-                    'code' => $occupationData['code'],
-                    'description' => $occupationData['description'],
-                    'is_active' => true,
-                ]);
+        foreach ($occupations as $occ) {
+            $dept = Department::where('code', $occ['dept_code'])->first();
+            if ($dept) {
+                Occupation::updateOrCreate(
+                    ['code' => $occ['code']],
+                    [
+                        'department_id' => $dept->id,
+                        'name' => $occ['name'],
+                        'description' => $occ['description'],
+                        'is_active' => true,
+                    ]
+                );
             }
         }
 
-        echo "Occupations seeded successfully!\n";
+        echo "Hawa Gelan TVET College occupations seeded successfully!\n";
     }
 }
