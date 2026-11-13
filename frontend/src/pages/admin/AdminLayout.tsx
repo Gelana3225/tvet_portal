@@ -155,59 +155,21 @@ const AdminLayout: React.FC = () => {
                 <span>Admission Periods</span>
               </Link>
             </div>
-
-            {/* Account Pages Section */}
-            <div className="pt-4 space-y-1.5">
-              <span className="px-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase block">
-                ACCOUNT PAGES
-              </span>
-
-              <Link
-                to="/dashboard"
-                onClick={() => setMobileSidebarOpen(false)}
-                className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#1a1f37] text-cyan-400 flex items-center justify-center">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span>Student View</span>
-              </Link>
-
-              {/* Theme Toggle in Sidebar */}
-              <div className="pt-2">
-                <ThemeToggle showLabel={true} className="w-full justify-center py-2.5" />
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-500/20 transition text-left"
-              >
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </div>
-                <span>Sign Out</span>
-              </button>
-            </div>
           </div>
 
-          {/* Bottom Card (Vision UI "Need help?" banner) */}
-          <div className="mt-6 pt-4">
-            <div className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-[#0075ff]/20 via-[#7551ff]/20 to-transparent border border-white/10">
-              <div className="w-8 h-8 rounded-xl bg-white text-slate-900 flex items-center justify-center font-bold text-sm shadow-md mb-3">
-                ?
+          {/* Bottom Section: Sign Out Button at the very bottom */}
+          <div className="pt-4 border-t border-slate-200/80 dark:border-white/10 mt-auto">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-bold text-rose-500 hover:text-white bg-rose-500/10 hover:bg-rose-500 transition shadow-sm group cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-xl bg-rose-500/15 group-hover:bg-white/20 text-rose-500 group-hover:text-white flex items-center justify-center transition">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </div>
-              <h4 className="text-xs font-bold text-white">Need help?</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">Hawa Gelan TVET College Support & Admissions Desk</p>
-              <div className="mt-3">
-                <span className="inline-block px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-bold text-white tracking-wider uppercase transition">
-                  Staff Guide
-                </span>
-              </div>
-            </div>
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </aside>

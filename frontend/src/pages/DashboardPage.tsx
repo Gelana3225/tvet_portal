@@ -137,66 +137,40 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* Account Pages Section */}
-            <div className="pt-3">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 px-4 mb-2 block">
-                ACCOUNT PAGES
-              </span>
-
-              <div className="space-y-1.5">
-                {isStaff && (
-                  <Link
-                    to="/admin/dashboard"
-                    onClick={() => setMobileSidebarOpen(false)}
-                    className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-emerald-400 hover:text-white hover:bg-white/5 transition"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </div>
-                    <span>Admin Portal</span>
-                  </Link>
-                )}
-
-                {/* Theme Toggle in Sidebar */}
-                <div className="pt-2">
-                  <ThemeToggle showLabel={true} className="w-full justify-center py-2.5" />
-                </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-500/10 transition"
+            {isStaff && (
+              <div className="pt-3">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 px-4 mb-2 block">
+                  STAFF ACCESS
+                </span>
+                <Link
+                  to="/admin/dashboard"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold text-emerald-400 hover:text-white hover:bg-white/5 transition"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </div>
-                  <span>Sign Out</span>
-                </button>
+                  <span>Admin Portal</span>
+                </Link>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Bottom "Need help?" Vision UI Card */}
-          <div className="relative mt-6 rounded-2xl p-4 overflow-hidden bg-gradient-to-br from-[#0075ff]/25 to-[#7551ff]/20 border border-white/10">
-            <div className="relative z-10 space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-[#0075ff] flex items-center justify-center text-white shadow-md">
+          {/* Bottom Section: Sign Out Button at the very bottom */}
+          <div className="pt-4 border-t border-slate-200/80 dark:border-white/10 mt-auto">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-bold text-rose-500 hover:text-white bg-rose-500/10 hover:bg-rose-500 transition shadow-sm group cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-xl bg-rose-500/15 group-hover:bg-white/20 text-rose-500 group-hover:text-white flex items-center justify-center transition">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </div>
-              <div className="text-xs font-bold text-white">Need Help?</div>
-              <p className="text-[11px] text-slate-300">
-                Hawa Gelan Registrar Office is open Mon-Fri 8:30am - 5:00pm.
-              </p>
-              <a
-                href="mailto:admissions@hawagalantvt.edu.et"
-                className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold border border-white/15 transition mt-2"
-              >
-                Contact Registrar
-              </a>
-            </div>
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </aside>

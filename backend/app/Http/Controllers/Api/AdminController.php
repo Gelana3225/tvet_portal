@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdmissionPeriod;
+use App\Models\ApplicantProfile;
 use App\Models\Application;
 use App\Models\ApplicationStatusHistory;
 use App\Models\Department;
 use App\Models\Occupation;
+use App\Models\QualificationLevel;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -52,21 +54,82 @@ class AdminController extends Controller
 
         $activePeriod = AdmissionPeriod::where('status', 'open')->first();
 
-        $recentApplications = Application::with(['user.applicantProfile', 'department', 'occupation'])
+        // Real Department Capacity & Quotas
+        $departmentsData = Department::where('is_active', true)->get()->map(function($dept) {
+            $appsCount = Application::where('department_id', $dept->id)->count();
+            $admittedCount = Application::where('department_id', $dept->id)->where('current_status', 'approved')->count();
+            $inReviewCount = Application::where('department_id', $dept->id)->whereIn('current_status', ['submitted', 'under_review'])->count();
+            // Default baseline capacity of 100 seats per TVET department (Total college capacity: 500)
+            $capacity = 100;
+            $fulfillment = $capacity > 0 ? round(($admittedCount / $capacity) * 100, 1) : 0;
+            return [
+                'id' => $dept->id,
+                'name' => $dept->name,
+                'code' => $dept->code,
+                'capacity' => $capacity,
+                'applications_count' => $appsCount,
+                'admitted_count' => $admittedCount,
+                'in_review_count' => $inReviewCount,
+                'fulfillment_percent' => $fulfillment,
+            ];
+        });
+
+        $totalCapacity = $departmentsData->sum('capacity') ?: 500;
+        $overallFulfillment = $totalCapacity > 0 ? round(($approvedCount / $totalCapacity) * 100, 1) : 0;
+        $admissionRate = $totalApplications > 0 ? round(($approvedCount / $totalApplications) * 100, 1) : 0;
+
+        // Real Monthly Intake Trend (Last 6 months)
+        $monthlyTrend = [];
+        $now = now();
+        for ($i = 5; $i >= 0; $i--) {
+            $date = $now->copy()->subMonths($i);
+            $m = (int) $date->format('n');
+            $y = (int) $date->format('Y');
+            $mName = $date->format('M');
+            $appCount = Application::whereYear('created_at', $y)->whereMonth('created_at', $m)->count();
+            $admitted = Application::whereYear('created_at', $y)->whereMonth('created_at', $m)->where('current_status', 'approved')->count();
+            $monthlyTrend[] = [
+                'month' => $mName,
+                'year' => $y,
+                'applications' => $appCount,
+                'admitted' => $admitted,
+            ];
+        }
+
+        // Qualification Levels Breakdown
+        $levelsData = QualificationLevel::all()->map(function($lvl) {
+            return [
+                'id' => $lvl->id,
+                'name' => $lvl->name,
+                'code' => $lvl->code,
+                'count' => Application::where('qualification_level_id', $lvl->id)->count(),
+            ];
+        });
+
+        // Gender Distribution
+        $maleCount = ApplicantProfile::where('gender', 'male')->count();
+        $femaleCount = ApplicantProfile::where('gender', 'female')->count();
+
+        $recentApplications = Application::with(['user.applicantProfile', 'department', 'occupation', 'qualificationLevel'])
             ->orderBy('created_at', 'desc')
-            ->limit(5)
+            ->limit(6)
             ->get()
             ->map(function ($app) {
                 $name = $app->user && $app->user->applicantProfile 
                     ? $app->user->applicantProfile->full_name 
                     : ($app->user ? $app->user->email : 'Unknown');
+                $photo = $app->user && $app->user->applicantProfile 
+                    ? $app->user->applicantProfile->passport_photo_url 
+                    : null;
                 return [
                     'id' => $app->id,
                     'application_number' => $app->application_number,
                     'applicant_name' => $name,
                     'applicant_email' => $app->user ? $app->user->email : '',
+                    'applicant_photo' => $photo,
                     'department' => $app->department ? $app->department->name : '-',
                     'occupation' => $app->occupation ? $app->occupation->name : '-',
+                    'level' => $app->qualificationLevel ? $app->qualificationLevel->name : 'Level I',
                     'status' => $app->current_status,
                     'submitted_at' => $app->submitted_at,
                     'created_at' => $app->created_at,
@@ -85,10 +148,23 @@ class AdminController extends Controller
                 'total_students' => $totalStudents,
                 'total_applicants' => $totalApplicants,
                 'total_users' => $totalUsers,
+                'total_capacity' => $totalCapacity,
+                'overall_fulfillment' => $overallFulfillment,
+                'admission_rate' => $admissionRate,
+                'gender_distribution' => [
+                    'male' => $maleCount,
+                    'female' => $femaleCount,
+                ],
+                'departments' => $departmentsData,
+                'qualification_levels' => $levelsData,
+                'monthly_trend' => $monthlyTrend,
                 'active_period' => $activePeriod ? [
                     'id' => $activePeriod->id,
                     'name' => $activePeriod->name,
                     'academic_year' => $activePeriod->academic_year,
+                    'opening_date' => $activePeriod->opening_date,
+                    'closing_date' => $activePeriod->closing_date,
+                    'status' => $activePeriod->status,
                 ] : null,
             ],
             'recent_applications' => $recentApplications,

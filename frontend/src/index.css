@@ -115,6 +115,31 @@ html.light .text-white {
   color: #0f172a !important;
 }
 
+/* Ensure solid colored buttons and badges always have crisp white text */
+html.light .force-white,
+html.light .btn-solid,
+html.light .badge-solid,
+html.light button[class*="bg-[#0075ff]"],
+html.light a[class*="bg-[#0075ff]"],
+html.light button[class*="bg-emerald-"],
+html.light a[class*="bg-emerald-"] {
+  color: #ffffff !important;
+}
+html.light .force-white *,
+html.light .btn-solid *,
+html.light button[class*="bg-[#0075ff]"] *,
+html.light a[class*="bg-[#0075ff]"] * {
+  color: #ffffff !important;
+}
+
+/* Light mode track for SVG circular and arc gauges */
+.svg-gauge-track {
+  stroke: #1e293b;
+}
+html.light .svg-gauge-track {
+  stroke: #e2e8f0 !important;
+}
+
 /* Prevent Light Mode from overriding ID Card badge styling */
 html.light #printable-id-card .text-white,
 html.light #printable-id-card [class*="text-white"],
