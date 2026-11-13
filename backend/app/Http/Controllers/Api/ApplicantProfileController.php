@@ -152,7 +152,7 @@ class ApplicantProfileController extends Controller
             'gender' => $profile->gender,
             'date_of_birth' => $profile->date_of_birth ? $profile->date_of_birth->format('Y-m-d') : null,
             'nationality' => $profile->nationality,
-            'photo_url' => $profile->profile_photo_path ? Storage::url($profile->profile_photo_path) : null,
+            'photo_url' => $profile->profile_photo_path ? url(Storage::url($profile->profile_photo_path)) : null,
             'phone' => $profile->phone_number,
             'email' => $profile->email ?: ($profile->user ? $profile->user->email : ''),
             'address' => [

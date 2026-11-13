@@ -23,7 +23,7 @@ class ApplicationController extends Controller
         $user = $request->user();
         
         $applications = Application::where('user_id', $user->id)
-            ->with(['admissionPeriod', 'department', 'occupation', 'qualificationLevel', 'documents'])
+            ->with(['admissionPeriod', 'department', 'occupation', 'qualificationLevel', 'documents', 'student'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -43,7 +43,7 @@ class ApplicationController extends Controller
         
         $application = Application::where('id', $id)
             ->where('user_id', $user->id)
-            ->with(['admissionPeriod', 'department', 'occupation', 'qualificationLevel', 'documents', 'statusHistories'])
+            ->with(['admissionPeriod', 'department', 'occupation', 'qualificationLevel', 'documents', 'statusHistories', 'student'])
             ->first();
 
         if (!$application) {
@@ -172,8 +172,12 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'document_type' => ['required', 'string', 'in:transcript,certificate,id_card,birth_certificate,photo,other'],
-            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], // 5MB max
+            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'], // 2MB max
             'description' => ['nullable', 'string', 'max:255'],
+        ], [
+            'file.max' => 'The selected file exceeds the maximum allowed size of 2 MB (2,048 KB). Please minimize or compress your file and re-upload.',
+            'file.mimes' => 'Only PDF, JPG, JPEG, and PNG files are accepted.',
+            'file.required' => 'No file received or file exceeded the upload limit. Please minimize your file and try again.',
         ]);
 
         $user = $request->user();
@@ -221,7 +225,7 @@ class ApplicationController extends Controller
                 'id' => $document->id,
                 'document_type' => $document->document_type,
                 'file_name' => $document->original_filename,
-                'file_url' => Storage::url($document->file_path),
+                'file_url' => url(Storage::url($document->file_path)),
                 'file_size' => $document->file_size,
                 'uploaded_at' => $document->created_at,
             ]
@@ -384,7 +388,7 @@ class ApplicationController extends Controller
                     'id' => $doc->id,
                     'document_type' => $doc->document_type,
                     'file_name' => $doc->original_filename,
-                    'file_url' => Storage::url($doc->file_path),
+                    'file_url' => url(Storage::url($doc->file_path)),
                     'file_size' => $doc->file_size,
                     'is_verified' => $doc->is_verified,
                     'uploaded_at' => $doc->created_at,
@@ -395,6 +399,13 @@ class ApplicationController extends Controller
             'reviewed_at' => $application->reviewed_at,
             'created_at' => $application->created_at,
             'updated_at' => $application->updated_at,
+            'student' => $application->student ? [
+                'id' => $application->student->id,
+                'student_id' => $application->student->student_id,
+                'academic_year' => $application->student->academic_year,
+                'enrollment_date' => $application->student->enrollment_date ? $application->student->enrollment_date->format('d/m/Y') : null,
+                'status' => $application->student->status,
+            ] : null,
         ];
 
         if ($includeHistory && $application->relationLoaded('statusHistories')) {

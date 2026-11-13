@@ -54,6 +54,19 @@ class ApplicantProfile extends Model
         $this->attributes['profile_photo_path'] = $value;
     }
 
+    public function getFullNameAttribute(): string
+    {
+        $parts = array_filter([
+            $this->first_name ?? null,
+            $this->father_name ?? null,
+            $this->grandfather_name ?? null,
+        ]);
+        if (!empty($parts)) {
+            return implode(' ', $parts);
+        }
+        return $this->user ? ($this->user->name ?: $this->user->email) : '';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { adminApi } from '../../services/api';
+import DocumentPreviewModal from '../../components/DocumentPreviewModal';
+import StudentIDCardModal from '../../components/StudentIDCardModal';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
   draft:               { label: 'Draft',              color: 'text-slate-300',   bg: 'bg-slate-500/20',   border: 'border-slate-500/30' },
@@ -20,6 +22,15 @@ const AdminApplicationDetailPage: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [modalType, setModalType] = useState<'approve' | 'reject' | 'correction' | null>(null);
   const [modalNotes, setModalNotes] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<any>(null);
+  const [showIDModal, setShowIDModal] = useState(false);
+
+  const backendRoot = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+  const getDocumentUrl = (fileUrl: string | undefined) => {
+    if (!fileUrl) return '';
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) return fileUrl;
+    return `${backendRoot}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+  };
 
   useEffect(() => { if (id) loadApplicationDetail(); }, [id]);
 
@@ -109,9 +120,15 @@ const AdminApplicationDetailPage: React.FC = () => {
               {st.label}
             </span>
             {application.student && (
-              <span className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                ID: {application.student.student_id}
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowIDModal(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-bold border bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 hover:text-white border-emerald-500/30 transition cursor-pointer"
+              >
+                <span>🪪</span>
+                <span>ID: {application.student.student_id}</span>
+                <span className="text-[10px] text-amber-300 font-semibold">(View ID Card →)</span>
+              </button>
             )}
           </div>
         </div>
@@ -169,6 +186,15 @@ const AdminApplicationDetailPage: React.FC = () => {
           >
             ✕ Reject
           </button>
+          {application.student && (
+            <button
+              onClick={() => setShowIDModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center space-x-1.5 cursor-pointer"
+            >
+              <span>🪪</span>
+              <span>View Student ID Card</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -232,14 +258,24 @@ const AdminApplicationDetailPage: React.FC = () => {
                         <p className="text-[11px] text-slate-400">{doc.file_name} · {(doc.file_size / 1024).toFixed(1)} KB</p>
                       </div>
                     </div>
-                    <a
-                      href={doc.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-[#0075ff]/10 hover:bg-[#0075ff]/20 text-[#0075ff] text-xs font-semibold border border-[#0075ff]/20 transition"
-                    >
-                      Open ↗
-                    </a>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewDoc({ ...doc, title: doc.document_type?.replace('_', ' ').toUpperCase() })}
+                        className="px-3 py-1.5 rounded-lg bg-[#0075ff]/15 hover:bg-[#0075ff]/25 text-[#0075ff] text-xs font-semibold border border-[#0075ff]/30 transition cursor-pointer"
+                      >
+                        View
+                      </button>
+                      <a
+                        href={getDocumentUrl(doc.file_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs border border-white/10 transition"
+                        title="Open in new window"
+                      >
+                        ↗
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -371,6 +407,51 @@ const AdminApplicationDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* In-Portal Document Preview Modal */}
+      <DocumentPreviewModal
+        doc={previewDoc}
+        title={previewDoc?.title}
+        onClose={() => setPreviewDoc(null)}
+      />
+
+      {/* Official Student ID Badge Modal */}
+      {showIDModal && application?.student && (
+        <StudentIDCardModal
+          student={{
+            id: application.student.id,
+            student_id: application.student.student_id,
+            full_name: profile?.full_name || application.applicant?.email || 'N/A',
+            first_name: profile?.first_name || '',
+            father_name: profile?.father_name || '',
+            grandfather_name: profile?.grandfather_name || '',
+            email: application.applicant?.email || '',
+            phone: profile?.phone || '',
+            gender: profile?.gender || 'Male',
+            date_of_birth: profile?.date_of_birth || '01/01/2000',
+            nationality: profile?.nationality || 'Ethiopian',
+            region: profile?.region || 'Oromia',
+            zone: profile?.zone || 'Kelem Wollega',
+            woreda: profile?.woreda || 'Hawa Gelan',
+            kebele: profile?.kebele || '01',
+            house_number: profile?.house_number || '',
+            emergency_contact_name: profile?.emergency_contact_name || '',
+            emergency_contact_phone: profile?.emergency_contact_phone || '',
+            emergency_contact_relationship: profile?.emergency_contact_relationship || '',
+            department: application.program?.department?.name || '-',
+            department_code: application.program?.department?.code || '',
+            occupation: application.program?.occupation?.name || '-',
+            occupation_code: application.program?.occupation?.code || '',
+            qualification_level: application.program?.qualification_level?.name || '-',
+            academic_year: application.program?.admission_period?.academic_year || '2026/2027',
+            enrollment_date: application.reviewed_at ? new Date(application.reviewed_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+            issue_date: application.reviewed_at ? new Date(application.reviewed_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+            expiry_date: `30/06/${new Date().getFullYear() + 3}`,
+            photo_url: profile?.photo_url || application.documents?.find((d: any) => d.document_type === 'photo')?.file_url || null,
+            status: application.student.status || 'active',
+          }}
+          onClose={() => setShowIDModal(false)}
+        />
       )}
     </div>
   );

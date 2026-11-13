@@ -115,6 +115,31 @@ html.light .text-white {
   color: #0f172a !important;
 }
 
+/* Prevent Light Mode from overriding ID Card badge styling */
+html.light #printable-id-card .text-white,
+html.light #printable-id-card [class*="text-white"],
+html.light .id-badge-card .text-white,
+html.light .id-badge-card [class*="text-white"],
+#printable-id-card .id-text-white,
+.id-badge-card .id-text-white {
+  color: #ffffff !important;
+}
+
+html.light #printable-id-card .id-text-gold,
+.id-badge-card .id-text-gold {
+  color: #facc15 !important;
+}
+
+html.light #printable-id-card .id-text-mint,
+.id-badge-card .id-text-mint {
+  color: #6ee7b7 !important;
+}
+
+html.light #printable-id-card .id-text-amber,
+.id-badge-card .id-text-amber {
+  color: #fde047 !important;
+}
+
 html.light .text-slate-200,
 html.light .text-slate-300 {
   color: #334155 !important;

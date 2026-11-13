@@ -229,7 +229,7 @@ class AdminController extends Controller
                         'date_of_birth' => $profile->date_of_birth ? $profile->date_of_birth->format('Y-m-d') : null,
                         'nationality' => $profile->nationality,
                         'phone' => $profile->phone_number,
-                        'photo_url' => $profile->profile_photo_path ? Storage::url($profile->profile_photo_path) : null,
+                        'photo_url' => $profile->profile_photo_path ? url(Storage::url($profile->profile_photo_path)) : null,
                         'region' => $profile->region,
                         'zone' => $profile->zone,
                         'woreda' => $profile->woreda,
@@ -274,7 +274,7 @@ class AdminController extends Controller
                         'id' => $doc->id,
                         'document_type' => $doc->document_type,
                         'file_name' => $doc->original_filename,
-                        'file_url' => Storage::url($doc->file_path),
+                        'file_url' => url(Storage::url($doc->file_path)),
                         'file_size' => $doc->file_size,
                         'is_verified' => $doc->is_verified,
                         'uploaded_at' => $doc->created_at,
@@ -398,24 +398,74 @@ class AdminController extends Controller
             'department',
             'occupation',
             'qualificationLevel',
-            'application',
+            'application.documents',
         ])->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'students' => $students->map(function ($s) {
                 $profile = $s->user ? $s->user->applicantProfile : null;
+
+                // Resolve full name:
+                $fullName = '';
+                if ($profile) {
+                    $fullName = trim("{$profile->first_name} {$profile->father_name} {$profile->grandfather_name}");
+                    if (empty($fullName) && !empty($profile->full_name)) {
+                        $fullName = trim($profile->full_name);
+                    }
+                }
+                if (empty($fullName) && $s->user) {
+                    $fullName = $s->user->name ?: $s->user->email;
+                }
+
+                // Resolve photo URL
+                $photoUrl = null;
+                if ($profile && $profile->profile_photo_path) {
+                    $photoUrl = url(Storage::url($profile->profile_photo_path));
+                } elseif ($s->application) {
+                    $photoDoc = $s->application->documents->firstWhere('document_type', 'photo');
+                    if ($photoDoc && $photoDoc->file_path) {
+                        $photoUrl = url(Storage::url($photoDoc->file_path));
+                    }
+                }
+
+                // Resolve academic year start
+                $yearPart = (int)substr($s->academic_year ?: date('Y'), 0, 4);
+                if ($yearPart < 2000) {
+                    $yearPart = (int)date('Y');
+                }
+                $expiryYear = $yearPart + 3;
+
                 return [
                     'id' => $s->id,
                     'student_id' => $s->student_id,
-                    'full_name' => $profile ? $profile->full_name : ($s->user ? $s->user->email : 'N/A'),
+                    'full_name' => $fullName ?: 'N/A',
+                    'first_name' => $profile ? ($profile->first_name ?: '') : '',
+                    'father_name' => $profile ? ($profile->father_name ?: '') : '',
+                    'grandfather_name' => $profile ? ($profile->grandfather_name ?: '') : '',
                     'email' => $s->user ? $s->user->email : '',
-                    'phone' => $profile ? $profile->phone_number : '',
+                    'phone' => $profile ? ($profile->phone_number ?: ($s->user ? $s->user->phone : '')) : ($s->user ? $s->user->phone : ''),
+                    'gender' => $profile && $profile->gender ? ucfirst($profile->gender) : 'Male',
+                    'date_of_birth' => $profile && $profile->date_of_birth ? $profile->date_of_birth->format('d/m/Y') : '01/01/2000',
+                    'nationality' => $profile ? ($profile->nationality ?: 'Ethiopian') : 'Ethiopian',
+                    'region' => $profile ? ($profile->region ?: 'Oromia') : 'Oromia',
+                    'zone' => $profile ? ($profile->zone ?: 'Kelem Wollega') : 'Kelem Wollega',
+                    'woreda' => $profile ? ($profile->woreda ?: 'Hawa Gelan') : 'Hawa Gelan',
+                    'kebele' => $profile ? ($profile->kebele ?: '01') : '01',
+                    'house_number' => $profile ? ($profile->house_number ?: '') : '',
+                    'emergency_contact_name' => $profile ? ($profile->emergency_contact_name ?: '') : '',
+                    'emergency_contact_phone' => $profile ? ($profile->emergency_contact_phone ?: '') : '',
+                    'emergency_contact_relationship' => $profile ? ($profile->emergency_contact_relationship ?: '') : '',
                     'department' => $s->department ? $s->department->name : '-',
+                    'department_code' => $s->department ? $s->department->code : '',
                     'occupation' => $s->occupation ? $s->occupation->name : '-',
+                    'occupation_code' => $s->occupation ? $s->occupation->code : '',
                     'qualification_level' => $s->qualificationLevel ? $s->qualificationLevel->name : '-',
-                    'academic_year' => $s->academic_year,
-                    'enrollment_date' => $s->enrollment_date ? $s->enrollment_date->format('Y-m-d') : null,
-                    'status' => $s->status,
+                    'academic_year' => $s->academic_year ?: '2026/2027',
+                    'enrollment_date' => $s->enrollment_date ? $s->enrollment_date->format('d/m/Y') : date('d/m/Y'),
+                    'issue_date' => $s->approved_at ? $s->approved_at->format('d/m/Y') : ($s->created_at ? $s->created_at->format('d/m/Y') : date('d/m/Y')),
+                    'expiry_date' => "30/06/{$expiryYear}",
+                    'photo_url' => $photoUrl,
+                    'status' => $s->status ?: 'active',
                 ];
             }),
         ], 200);

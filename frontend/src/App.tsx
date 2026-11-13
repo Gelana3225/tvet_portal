@@ -16,6 +16,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminApplicationDetailPage from './pages/admin/AdminApplicationDetailPage';
 import AdminAdmissionPeriodsPage from './pages/admin/AdminAdmissionPeriodsPage';
+import AdminStudentsPage from './pages/admin/AdminStudentsPage';
 import './index.css';
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="applications" element={<AdminApplicationsPage />} />
             <Route path="applications/:id" element={<AdminApplicationDetailPage />} />
+            <Route path="students" element={<AdminStudentsPage />} />
             <Route path="admission-periods" element={<AdminAdmissionPeriodsPage />} />
           </Route>
 

@@ -110,6 +110,29 @@ const AdminLayout: React.FC = () => {
               </Link>
 
               <Link
+                to="/admin/students"
+                onClick={() => setMobileSidebarOpen(false)}
+                className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold transition ${
+                  isActive('/admin/students')
+                    ? 'bg-[#1a1f37] text-white shadow-md shadow-blue-950/50 border border-white/10'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${
+                    isActive('/admin/students')
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40'
+                      : 'bg-[#1a1f37] text-emerald-400'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.974 10.974 0 01-1.25 5.949A1 1 0 004.91 15.5h10.18a1 1 0 00.91-1.5 10.974 10.974 0 01-1.25-5.949l2.644-1.131a1 1 0 000-1.84l-7-3zM5.986 8.367l4.014 1.72 4.014-1.72-4.014-1.72-4.014 1.72z" />
+                  </svg>
+                </div>
+                <span>Admitted Students & IDs</span>
+              </Link>
+
+              <Link
                 to="/admin/admission-periods"
                 onClick={() => setMobileSidebarOpen(false)}
                 className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-semibold transition ${

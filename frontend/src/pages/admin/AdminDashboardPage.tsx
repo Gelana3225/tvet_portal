@@ -157,27 +157,31 @@ const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Card 4: Total Sales / Admitted Students */}
-        <div className="vision-card rounded-2xl p-4 flex items-center justify-between">
+        <Link
+          to="/admin/students"
+          className="vision-card rounded-2xl p-4 flex items-center justify-between hover:border-emerald-500/40 transition group cursor-pointer"
+        >
           <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            <span className="text-[11px] font-bold tracking-wider text-slate-400 group-hover:text-emerald-300 uppercase transition">
               Admitted Students
             </span>
             <div className="flex items-baseline space-x-2 mt-1">
               <span className="text-xl font-black text-white tracking-tight">
                 {approved.toLocaleString()}
               </span>
-              <span className="text-xs font-bold text-emerald-400">
-                +8%
+              <span className="text-xs font-bold text-emerald-400 flex items-center">
+                <span>View IDs</span>
+                <span className="ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
               </span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-[#0075ff] flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+          <div className="w-11 h-11 rounded-xl bg-[#0075ff] group-hover:bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 transition">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
             </svg>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* =========================================================================
@@ -285,12 +289,20 @@ const AdminDashboardPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="relative z-10 pt-6">
+          <div className="relative z-10 pt-6 flex flex-wrap items-center gap-4">
             <Link
-              to="/admin/admission-periods"
-              className="inline-flex items-center text-xs font-bold text-white hover:text-[#0075ff] transition group"
+              to="/admin/applications"
+              className="inline-flex items-center text-xs font-bold text-white hover:text-emerald-400 transition group"
             >
-              <span>Manage Intake Cycles</span>
+              <span>Review & Generate Student IDs</span>
+              <span className="ml-1.5 transform group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+            <span className="text-white/20">•</span>
+            <Link
+              to="/admin/students"
+              className="inline-flex items-center text-xs font-bold text-slate-300 hover:text-white transition group"
+            >
+              <span>View ID Registry</span>
               <span className="ml-1.5 transform group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>

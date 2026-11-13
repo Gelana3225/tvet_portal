@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { applicationApi, profileApi, referenceApi } from '../services/api';
+import StudentIDCardModal from '../components/StudentIDCardModal';
 
 const StudentDashboardHomePage: React.FC = () => {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ const StudentDashboardHomePage: React.FC = () => {
   const [applications, setApplications] = useState<any[]>([]);
   const [activePeriod, setActivePeriod] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showIDModal, setShowIDModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -139,6 +141,23 @@ const StudentDashboardHomePage: React.FC = () => {
               >
                 <span>✏️ Continue Application</span>
               </Link>
+            ) : isAdmitted ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowIDModal(true)}
+                  className="inline-flex items-center justify-center space-x-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <span>🪪</span>
+                  <span>View Student ID Badge</span>
+                </button>
+                <Link
+                  to={`/dashboard/applications/${latestApp.id}`}
+                  className="inline-flex items-center justify-center space-x-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-2xl border border-white/20 transition"
+                >
+                  <span>📄 Dossier</span>
+                </Link>
+              </div>
             ) : (
               <Link
                 to={`/dashboard/applications/${latestApp.id}`}
@@ -321,7 +340,7 @@ const StudentDashboardHomePage: React.FC = () => {
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isAdmitted ? (
                   <>
-                    Congratulations! Your Student Matriculation ID has been issued. You are officially enrolled for this academic year.
+                    Congratulations! Your Student Matriculation ID has been issued: <strong className="text-amber-300 font-mono">{latestApp?.student?.student_id || 'HTC-2026-0001'}</strong>. You are officially enrolled for this academic year.
                   </>
                 ) : isSubmitted ? (
                   'Your application is currently under formal review by the Registrar. You will be notified once verified.'
@@ -331,7 +350,17 @@ const StudentDashboardHomePage: React.FC = () => {
               </p>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap gap-2">
+              {isAdmitted && (
+                <button
+                  type="button"
+                  onClick={() => setShowIDModal(true)}
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/20 transition cursor-pointer"
+                >
+                  <span>🪪</span>
+                  <span>View Student ID Badge</span>
+                </button>
+              )}
               {hasApplication && (
                 <Link
                   to={`/dashboard/applications/${latestApp.id}`}
@@ -469,6 +498,45 @@ const StudentDashboardHomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Official Student ID Badge Modal for Admitted Student */}
+      {showIDModal && latestApp && (
+        <StudentIDCardModal
+          student={{
+            id: latestApp.student?.id || 1,
+            student_id: latestApp.student?.student_id || 'HTC-2026-0001',
+            full_name: profile?.full_name || user?.name || 'Trainee',
+            first_name: profile?.first_name || '',
+            father_name: profile?.father_name || '',
+            grandfather_name: profile?.grandfather_name || '',
+            email: user?.email || '',
+            phone: profile?.phone_number || profile?.phone || '',
+            gender: profile?.gender || 'Male',
+            date_of_birth: profile?.date_of_birth || '01/01/2000',
+            nationality: profile?.nationality || 'Ethiopian',
+            region: profile?.region || 'Oromia',
+            zone: profile?.zone || 'Kelem Wollega',
+            woreda: profile?.woreda || 'Hawa Gelan',
+            kebele: profile?.kebele || '01',
+            house_number: profile?.house_number || '',
+            emergency_contact_name: profile?.emergency_contact_name || '',
+            emergency_contact_phone: profile?.emergency_contact_phone || '',
+            emergency_contact_relationship: profile?.emergency_contact_relationship || '',
+            department: latestApp.department?.name || 'Agricultural Technology',
+            department_code: latestApp.department?.code || '',
+            occupation: latestApp.occupation?.name || 'Animal Production',
+            occupation_code: latestApp.occupation?.code || '',
+            qualification_level: latestApp.qualification_level?.name || 'Level I',
+            academic_year: latestApp.admission_period?.academic_year || '2026/2027',
+            enrollment_date: latestApp.reviewed_at ? new Date(latestApp.reviewed_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+            issue_date: latestApp.reviewed_at ? new Date(latestApp.reviewed_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+            expiry_date: `30/06/${new Date().getFullYear() + 3}`,
+            photo_url: profile?.profile_photo_path || profile?.photo_url || latestApp.documents?.find((d: any) => d.document_type === 'photo')?.file_url || null,
+            status: latestApp.student?.status || 'active',
+          }}
+          onClose={() => setShowIDModal(false)}
+        />
+      )}
     </div>
   );
 };
